@@ -5,6 +5,7 @@ import Nav from "@/components/Nav";
 import PressDriver from "@/components/PressDriver";
 import PrintPlates from "@/components/PrintPlates";
 import { site } from "@/content/site";
+import { openGraphBase } from "@/lib/metadata";
 import "@/styles/globals.css";
 
 const sourceSerif = Source_Serif_4({
@@ -17,7 +18,10 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: { default: site.name, template: `%s — ${site.name}` },
-  description: `Portfolio of ${site.name}.`,
+  description: site.description,
+  authors: [{ name: site.name, url: site.url }],
+  openGraph: { ...openGraphBase, type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

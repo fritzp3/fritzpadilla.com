@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import HalftoneImage from "@/components/HalftoneImage";
 import Illustration from "@/components/Illustration";
@@ -7,13 +8,47 @@ import ProjectGrid from "@/components/ProjectGrid";
 import ProjectIndex from "@/components/ProjectIndex";
 import SectionLabel from "@/components/SectionLabel";
 import { about, contact, glance, hero, settings, site } from "@/content/site";
+import { openGraphBase } from "@/lib/metadata";
 import { getProjects, getYearRange } from "@/lib/projects";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: {
+    ...openGraphBase,
+    type: "website",
+    url: "/",
+    title: site.name,
+    description: site.description,
+  },
+};
+
+// schema.org Person, per the Next.js JSON-LD guide ("<" escaped against XSS).
+function PersonJsonLd() {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: site.name,
+    url: site.url,
+    jobTitle: site.jobTitle,
+    email: `mailto:${site.email}`,
+    description: site.description,
+    ...(about.portrait.src && { image: `${site.url}${about.portrait.src}` }),
+    ...(site.profiles.length > 0 && { sameAs: site.profiles }),
+  };
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
+    />
+  );
+}
 
 export default function Home() {
   const projects = getProjects();
 
   return (
     <>
+      <PersonJsonLd />
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section className="pt-[clamp(56px,10vw,112px)] pb-[clamp(40px,7vw,84px)]">
         <div className="flex flex-wrap items-center gap-x-[clamp(32px,5vw,80px)] gap-y-12">

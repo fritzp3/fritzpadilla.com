@@ -8,6 +8,14 @@ export const site = {
   // TODO: confirm the public contact address.
   email: "hello@fritzpadilla.com",
   colophon: "Hand-built, set in Source Serif",
+  // TODO: confirm — search/social description, condensed from the hero intro.
+  description:
+    "Fritz Padilla, digital impresario: producing digital experiences and leading the teams, architecture and story behind them.",
+  // TODO: confirm — used as jobTitle in the structured data.
+  jobTitle: "Digital Impresario",
+  // Public profile URLs for structured data (schema.org sameAs). Leave empty
+  // until the real URLs are known; placeholders would mislead search engines.
+  profiles: [] as string[],
 } as const;
 
 export const settings = {

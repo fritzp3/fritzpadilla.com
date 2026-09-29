@@ -22,7 +22,8 @@ Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully
 - **Next.js 16:** the APIs differ from older versions (for example, middleware is now "Proxy"). Check `node_modules/next/dist/docs/` before using an unfamiliar API.
 - **Git:** the first `git` on the local PATH is 2.6.4 (from 2015). Use `/usr/bin/git` (2.39).
 - **Lint and format:** ESLint (`next/core-web-vitals`, `next/typescript`) and Prettier.
-- **Testing:** Playwright for smoke and visual tests of the built `out/` folder, plus `@axe-core/playwright` for accessibility.
+- **Testing:** Playwright (`e2e/`) against the built `out/` folder, served on port 4173. It covers every sitemap route (status, single h1, title, canonical, og:image), horizontal overflow at 320–1600px, axe WCAG A/AA at 375px and 1280px, nav anchors vs `--nav-h`, next-project cycling, the skip link, the press driver (including reduced motion), JSON-LD, robots, sitemap, and preview images. Routes are read from `out/sitemap.xml`, so new projects are tested automatically.
+- **Lighthouse** (run manually against `npm run preview`): 95–100 in every category. The home page's accessibility score is capped at 95 because Lighthouse flags the decorative yellow headline plate (aria-hidden, 1.6:1). It can't be excluded, and it isn't a real failure.
 
 ## Commands
 
@@ -107,8 +108,11 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 ## SEO and metadata
 
-- Per-page `generateMetadata`: title, description, canonical URL, Open Graph, and Twitter card. `metadataBase` is `https://fritzpadilla.com`.
-- `sitemap.xml` and `robots.txt` are generated at build time. There is a JSON-LD `Person` block on the home page.
+- `metadataBase` is `https://fritzpadilla.com`. Every page sets a canonical URL. A page's `openGraph` **replaces** the layout's, so always spread `openGraphBase` from `lib/metadata.ts` into it.
+- `sitemap.ts` and `robots.ts` need `dynamic = "force-static"` for the export. The specimen page is `noindex` and left out of the sitemap.
+- Social previews (`opengraph-image.tsx` for the home page and each project) and the favicons (`icon.tsx`, `apple-icon.tsx`) render at build time via `lib/og.tsx`. It reads colors from `tokens.css`, because Satori can't use CSS variables, and uses the TTFs in `assets/fonts/` (SIL OFL; the license is alongside).
+- **These image routes export without a file extension** (`out/opengraph-image`, `out/icon`, `out/apple-icon`, `out/work/<slug>/opengraph-image`). The deploy must upload them with `Content-Type: image/png`, or S3 serves them as binary.
+- The home page has JSON-LD `Person` data. `site.profiles` feeds `sameAs`; keep it empty until the real URLs are known.
 
 ## Deployment (AWS)
 

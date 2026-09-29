@@ -5,6 +5,7 @@ import HalftoneImage from "@/components/HalftoneImage";
 import LeaderRow from "@/components/LeaderRow";
 import PressFigure from "@/components/PressFigure";
 import SectionLabel from "@/components/SectionLabel";
+import { openGraphBase } from "@/lib/metadata";
 import { getNextProject, getProject, getProjects } from "@/lib/projects";
 
 // Static export: only the slugs listed in content/projects.ts exist.
@@ -22,7 +23,13 @@ export async function generateMetadata(props: PageProps<"/work/[slug]">): Promis
     title: p.title,
     description: p.summary,
     alternates: { canonical: p.href },
-    openGraph: { title: p.title, description: p.summary, url: p.href, type: "article" },
+    openGraph: {
+      ...openGraphBase,
+      type: "article",
+      title: p.title,
+      description: p.summary,
+      url: p.href,
+    },
   };
 }
 
