@@ -125,14 +125,17 @@
   .btn-primary:hover {
     color: var(--color-bg);
   }
+  /* Text-bearing accents use accent-700 (5.7:1 on paper, WCAG AA). The
+     mockup's brighter --color-accent (3.65:1) is kept for decoration only:
+     the print plates, the nav color bar, focus rings. */
   .btn-primary {
-    background: var(--color-accent);
+    background: var(--color-accent-700);
   }
   .btn-primary:hover {
-    background: var(--color-accent-600);
+    background: var(--color-accent-800);
   }
   .btn-primary:active {
-    background: var(--color-accent-700);
+    background: var(--color-accent-900);
   }
   .btn-secondary {
     border-color: var(--color-divider);
@@ -145,7 +148,7 @@
   }
   .btn-ghost,
   .btn-ghost:hover {
-    color: var(--color-accent);
+    color: var(--color-accent-700);
   }
   .btn-ghost {
     padding-inline: var(--space-1);
@@ -180,8 +183,8 @@
     color: var(--color-neutral-800);
   }
   .tag-outline {
-    border: 1px solid var(--color-accent);
-    color: var(--color-accent);
+    border: 1px solid var(--color-accent-700);
+    color: var(--color-accent-700);
   }
 
   /* Halftone — a dot screen multiplied over a slightly desaturated image. */

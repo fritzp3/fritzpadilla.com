@@ -69,11 +69,11 @@ docs/
 
 The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site uses real URLs so every page can be indexed and linked:
 
-| Mockup                           | Site                                                                                                   |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `#/`                             | `/`                                                                                                    |
+| Mockup                           | Site                                                                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `#/`                             | `/`                                                                                                                              |
 | `#/about`, `#/work`, `#/contact` | `/#about`, `/#work`, `/#contact` (sections on the home page; `scroll-padding-top: var(--nav-h)` on `html` clears the sticky nav) |
-| `#/work/<slug>`                  | `/work/<slug>/`                                                                                        |
+| `#/work/<slug>`                  | `/work/<slug>/`                                                                                                                  |
 
 - `trailingSlash: true`, so the export writes `work/<slug>/index.html`. This keeps S3 object keys predictable.
 - The "Next project" link wraps around to the first project.
@@ -91,6 +91,8 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
   - Leader-dot rows (the skills and case-study metadata) and the double-rule "at a glance" strip.
 - **Pointer "press lean":** ported from the mockup's `print-plates.js`. `components/PrintPlates.tsx` renders the SVG filter defs once in the layout, `components/PressDriver.tsx` (client) animates them and sets `--press-nx/--press-ny`, and the plate values live in `lib/printPlates.ts`. It must do nothing when `prefers-reduced-motion: reduce`, `hover: none`, or `pointer: coarse` applies (the CSS already falls back).
 - **Accessibility:** decorative plate spans and the illustration are `aria-hidden`. The `.paper` span carries the real text. Visible focus rings (`:focus-visible`). Placeholder contrast meets 4.5:1. Every image has meaningful `alt` text.
+- **Contrast:** the mockup's bright `--color-accent` (#0088b0) is only 3.65:1 on paper, so it is for decoration only (print plates, nav color bar, focus rings). Anything carrying text (buttons, ghost links, outline tags, links) uses `accent-700` or darker (5.7:1). Muted ink text must be at least `text-ink/70`. The owner approved this deviation from the mockup.
+- **Automated a11y checks** run axe against the built pages, excluding the decorative `.plate` spans (aria-hidden repeats of the real text).
 - **Work list layout:** the mockup has two layouts, `index` (default) and `grid`. Build both behind a single config value in `site.ts`.
 - Use Server Components by default. Add `'use client'` only for the press-lean effect and similar interactive pieces.
 
@@ -98,6 +100,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 - Projects live in `src/content/projects.ts` as a typed array. Each project has `slug, title, type, year, summary, role, client, duration, team, tools[], story[{h,p}], live, repo, shots[{src,alt,caption}]`. Derived fields such as `num`, `href`, and `topTools` are computed in `lib/`, not stored.
 - The owner supplies the real content: projects, screenshots, portrait, bio, and CV. Until it arrives, use clearly marked placeholders (`TODO:` strings, empty image slots with a neutral fill). Do not reuse the mockup's invented projects (Northline, Fieldnotes, and the others) and do not invent new copy or client names.
+- The hero, "at a glance", About and Contact copy in `src/content/site.ts` came from the mockup and is marked `TODO: confirm` until the owner approves or replaces it. Missing images render as a labelled placeholder panel (`HalftoneImage` with no `src`).
 - Contact is a `mailto:` link only. There is no form, because nothing server-side runs on a static site.
 - The availability line is controlled by a `showAvailability` flag in `site.ts`.
 
