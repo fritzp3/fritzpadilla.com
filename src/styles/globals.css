@@ -18,6 +18,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--nav-h);
   }
   @media (prefers-reduced-motion: reduce) {
     html {

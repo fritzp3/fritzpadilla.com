@@ -63,7 +63,11 @@
 
 /* Tokens that are not Tailwind theme namespaces. Spacing steps are multiples
    of 5px; use them in utilities as p-(--space-3), gap-(--space-4), etc. */
+/* Layout: the page gutter and the sticky nav's height (used as the anchor
+   scroll offset so /#about lands just below the nav). */
 :root {
+  --gutter: clamp(20px, 5vw, 72px);
+  --nav-h: 108px;
   --font-heading-weight: 600;
   --space-1: 5px;
   --space-2: 10px;
@@ -71,4 +75,9 @@
   --space-4: 20px;
   --space-6: 30px;
   --space-8: 40px;
+}
+@media (width >= 40rem) {
+  :root {
+    --nav-h: 74px;
+  }
 }

@@ -1,8 +1,17 @@
+// Home page — sections are built in Phase 3. The ids exist now so the nav's
+// /#about, /#work and /#contact anchors can be tested.
 export default function Home() {
   return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "84px clamp(20px, 5vw, 72px)" }}>
-      <h1>Fritz Padilla</h1>
-      <p>Site under construction — see /specimen/ for the design foundation.</p>
-    </main>
+    <>
+      <section className="py-24">
+        <h1>Fritz Padilla</h1>
+        <p>Home page sections arrive in Phase 3.</p>
+      </section>
+      {(["about", "work", "contact"] as const).map((id) => (
+        <section key={id} id={id} className="min-h-[70vh] border-t border-divider py-16">
+          <h2 className="capitalize">{id}</h2>
+        </section>
+      ))}
+    </>
   );
 }

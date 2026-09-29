@@ -15,7 +15,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export default function Specimen() {
   return (
-    <main className="mx-auto max-w-[1200px] px-[clamp(20px,5vw,72px)] pt-12 pb-24">
+    <div className="pt-12 pb-24">
       <Label>Plate headline (move the mouse and the plates lean)</Label>
       <PlateHeadline
         lines={["Websites built", "to be read."]}
@@ -82,6 +82,6 @@ export default function Specimen() {
       <figure className="halftone aspect-[16/10] max-w-[560px]">
         <div className="size-full bg-linear-to-r from-neutral-600 to-neutral-300" />
       </figure>
-    </main>
+    </div>
   );
 }

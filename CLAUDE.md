@@ -72,7 +72,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 | Mockup                           | Site                                                                                                   |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `#/`                             | `/`                                                                                                    |
-| `#/about`, `#/work`, `#/contact` | `/#about`, `/#work`, `/#contact` (sections on the home page, `scroll-margin-top` clears the fixed nav) |
+| `#/about`, `#/work`, `#/contact` | `/#about`, `/#work`, `/#contact` (sections on the home page; `scroll-padding-top: var(--nav-h)` on `html` clears the sticky nav) |
 | `#/work/<slug>`                  | `/work/<slug>/`                                                                                        |
 
 - `trailingSlash: true`, so the export writes `work/<slug>/index.html`. This keeps S3 object keys predictable.
@@ -82,7 +82,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 - **Tokens are the source of truth.** Use the theme utilities, or `var(--color-*)` where a utility doesn't fit. Never hard-code a hex value in a component, including in arbitrary values like `bg-[#…]`. The one exception is `--color-process-yellow`, which is used only for print treatments.
 - **Type:** Source Serif 4 throughout. The heading weight is 600. Small caps labels are 13px, `letter-spacing: 0.08em`, uppercase, and 70% ink. Use the fluid `clamp()` sizes from the mockup.
-- **Layout:** content max width 1200px, side gutter `clamp(20px, 5vw, 72px)`. The nav is fixed with the multi-color bar along its bottom edge. The page must not scroll horizontally at 320px.
+- **Layout:** content max width 1200px, side gutter `clamp(20px, 5vw, 72px)`. The nav is `sticky` (not fixed, so it can never cover content) with the multi-color bar along its bottom edge. Below 640px it becomes two rows: name and CTA, then the links. `--nav-h` in `tokens.css` must match its measured height (108px on phones, 74px from 640px), because `scroll-padding-top` uses it to land anchors below the nav. The page must not scroll horizontally at 320px.
 - **Signature treatments.** Each one gets its own component:
   - `PlateHeadline`: the `.cmyk-head` misregistered C/M/Y text plates on the hero H1. It can be switched off with a flag, which renders plain text.
   - `PressFigure`: the `.cmyk` four-plate separation on the case-study hero image, using the SVG `feColorMatrix` filters (`#sep-c/m/y/k`, `#sep-all`) rendered once in the layout.
