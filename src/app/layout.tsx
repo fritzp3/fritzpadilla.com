@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Source_Serif_4 } from "next/font/google";
 import PrintPlates from "@/components/PrintPlates";
 import PressDriver from "@/components/PressDriver";
-import "@/styles/tokens.css";
 import "@/styles/globals.css";
 
 const sourceSerif = Source_Serif_4({

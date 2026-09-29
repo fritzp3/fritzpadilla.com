@@ -4,15 +4,18 @@
 
 Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully static export** and hosted on **AWS S3 + CloudFront**. The design reference is the mockup `design/Fritz-Padilla-Portfolio.html` (the "Broadsheet" design system). Treat it as read-only.
 
-> Items marked **[CONFIRM]** are defaults I picked that still need the owner's sign-off.
-
 ## Stack
 
 - **Next.js** (latest stable, App Router), **TypeScript** (strict), **React**
 - **Static export only**: `output: 'export'` in `next.config.ts`. There is no Node server at runtime, so:
   - No API routes, Server Actions, middleware, ISR, `cookies()`/`headers()`, or `next/image` optimization (`images.unoptimized: true`).
   - Every dynamic route must implement `generateStaticParams` with `dynamicParams = false`.
-- **Styling:** global design tokens in `src/styles/tokens.css` (ported verbatim from the mockup's `:root`) plus **CSS Modules** per component. No Tailwind or CSS-in-JS. **[CONFIRM]**
+- **Styling: Tailwind CSS v4** (via `@tailwindcss/postcss`; no `tailwind.config` file).
+  - `src/styles/tokens.css` holds the mockup's tokens inside `@theme`. They generate the utilities (`bg-accent`, `text-accent-2-700`, `border-divider`, `rounded-md`, `shadow-lg`, `font-heading`, `text-ink/70`) and remain CSS variables. Tailwind's default colors, radii and shadows are cleared, so only brand values exist.
+  - Spacing tokens `--space-1…8` (multiples of 5px) are plain variables. Use them as `p-(--space-3)`, or use arbitrary px values that match the mockup.
+  - Layout and one-off styling are utilities in the JSX. Arbitrary values (`text-[clamp(42px,6.4vw,84px)]`) are fine where the mockup uses exact numbers.
+  - `src/styles/globals.css` holds element defaults in `@layer base`, and a **short** list of named classes in `@layer components`: `.btn*`, `.tag*`, `.halftone`, `.cmyk`/`.print`, `.cmyk-head`/`.plate*`. Add a class there only when utilities can't express it (pseudo-elements, blend modes, SVG filter references). Never write unlayered CSS, because it would beat every utility.
+  - Class order is sorted by `prettier-plugin-tailwindcss`. No CSS Modules and no CSS-in-JS.
 - **Fonts:** Source Serif 4 (400, 400 italic, 600) through `next/font/google`, which self-hosts the files at build time. No runtime calls to Google Fonts.
 - **Package manager:** npm. **Node:** 22 LTS (pinned in `.nvmrc` and `engines`). The machine default is Node 25, so run `nvm use` first.
 - **Next.js 16:** the APIs differ from older versions (for example, middleware is now "Proxy"). Check `node_modules/next/dist/docs/` before using an unfamiliar API.
@@ -50,8 +53,8 @@ src/
     site.ts                 # name, email, location, availability, skills, social links
   lib/                      # helpers (e.g. getProject, getNextProject)
   styles/
-    tokens.css              # colors, ramps, spacing, radii, shadows (from mockup)
-    globals.css             # base elements + shared component classes (.btn, .tag, .halftone…)
+    tokens.css              # Tailwind @theme: colors, ramps, radii, shadows, fonts (from mockup)
+    globals.css             # @import "tailwindcss"; base layer; the few component classes
 public/
   images/projects/<slug>/   # thumb, hero, shot-1..4 (pre-sized WebP + fallback)
   cv.pdf
@@ -77,7 +80,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 ## Design system rules (from the mockup)
 
-- **Tokens are the source of truth.** Use `var(--color-*)`, `--space-*`, `--radius-*`, `--shadow-*`. Never hard-code a hex value in a component. The one exception is `--color-process-yellow`, which is used only for print treatments.
+- **Tokens are the source of truth.** Use the theme utilities, or `var(--color-*)` where a utility doesn't fit. Never hard-code a hex value in a component, including in arbitrary values like `bg-[#…]`. The one exception is `--color-process-yellow`, which is used only for print treatments.
 - **Type:** Source Serif 4 throughout. The heading weight is 600. Small caps labels are 13px, `letter-spacing: 0.08em`, uppercase, and 70% ink. Use the fluid `clamp()` sizes from the mockup.
 - **Layout:** content max width 1200px, side gutter `clamp(20px, 5vw, 72px)`. The nav is fixed with the multi-color bar along its bottom edge. The page must not scroll horizontally at 320px.
 - **Signature treatments.** Each one gets its own component:

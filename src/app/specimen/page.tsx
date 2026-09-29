@@ -1,62 +1,40 @@
 import type { Metadata } from "next";
+import PlateHeadline from "@/components/PlateHeadline";
 
-// Temporary Phase 1 check page: design foundation specimen.
-// Remove before launch (see PLAN.md, Phase 8).
+// Temporary check page for the design foundation. Remove before launch
+// (see PLAN.md, Phase 8).
 export const metadata: Metadata = { title: "Specimen", robots: { index: false } };
 
-const label: React.CSSProperties = {
-  display: "block",
-  fontSize: 13,
-  letterSpacing: "0.08em",
-  textTransform: "uppercase",
-  color: "color-mix(in srgb, var(--color-text) 70%, transparent)",
-  margin: "56px 0 16px",
-};
-
-const Plates = ({ text }: { text: string }) => (
-  <span className="cmyk-head" style={{ display: "block" }}>
-    <span className="paper">{text}</span>
-    <span className="plate plate-c" aria-hidden="true">
-      {text}
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mt-14 mb-4 block text-[13px] tracking-[0.08em] text-ink/70 uppercase">
+      {children}
     </span>
-    <span className="plate plate-m" aria-hidden="true">
-      {text}
-    </span>
-    <span className="plate plate-y" aria-hidden="true">
-      {text}
-    </span>
-  </span>
-);
+  );
+}
 
 export default function Specimen() {
   return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: "48px clamp(20px, 5vw, 72px) 96px" }}>
-      <span style={label}>Plate headline (move the mouse — plates lean)</span>
-      <h1
-        style={{
-          fontSize: "clamp(42px, 6.4vw, 84px)",
-          lineHeight: 1.08,
-          letterSpacing: "-0.02em",
-          margin: 0,
-        }}
-      >
-        <Plates text="Websites built" />
-        <Plates text="to be read." />
-      </h1>
+    <main className="mx-auto max-w-[1200px] px-[clamp(20px,5vw,72px)] pt-12 pb-24">
+      <Label>Plate headline (move the mouse and the plates lean)</Label>
+      <PlateHeadline
+        lines={["Websites built", "to be read."]}
+        className="m-0 text-[clamp(42px,6.4vw,84px)] leading-[1.08] tracking-[-0.02em]"
+      />
 
-      <span style={label}>Type scale</span>
+      <Label>Type scale</Label>
       <h1>Heading one</h1>
       <h2>Heading two</h2>
       <h3>Heading three</h3>
       <h4>Heading four</h4>
-      <p style={{ fontSize: 17, lineHeight: 1.65, maxWidth: "58ch" }}>
+      <p className="max-w-[58ch] text-[17px] leading-[1.65]">
         Body copy in Source Serif 4. <em>Italic for captions and emphasis.</em>{" "}
         <a href="#">An inline link</a>.
       </p>
 
-      <span style={label}>Buttons</span>
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-        <a href="#" className="btn btn-primary" style={{ color: "var(--color-bg)" }}>
+      <Label>Buttons</Label>
+      <div className="flex flex-wrap gap-3">
+        <a href="#" className="btn btn-primary">
           Primary
         </a>
         <a href="#" className="btn btn-secondary">
@@ -67,37 +45,42 @@ export default function Specimen() {
         </a>
       </div>
 
-      <span style={label}>Tags</span>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <Label>Tags</Label>
+      <div className="flex flex-wrap gap-2">
         <span className="tag tag-outline">Next.js</span>
         <span className="tag tag-accent">TypeScript</span>
         <span className="tag tag-accent-2">Accent 2</span>
         <span className="tag tag-neutral">Neutral</span>
       </div>
 
-      <span style={label}>Four-plate separation (hover to register)</span>
-      <figure className="cmyk" style={{ overflow: "visible", maxWidth: 560 }}>
-        <div className="print" style={{ aspectRatio: "16 / 10" }}>
+      <Label>Theme colors as Tailwind utilities</Label>
+      <div className="flex flex-wrap gap-2">
+        {[
+          "bg-accent",
+          "bg-accent-2",
+          "bg-process-yellow",
+          "bg-ink",
+          "bg-surface",
+          "bg-neutral-500",
+        ].map((c) => (
           <div
-            style={{
-              width: "100%",
-              height: "100%",
-              background:
-                "linear-gradient(135deg, #e8b04b 0%, #c2553b 35%, #3f6e8c 70%, #1d2b33 100%)",
-            }}
+            key={c}
+            className={`${c} h-12 w-24 rounded-md border border-divider shadow-sm`}
+            title={c}
           />
+        ))}
+      </div>
+
+      <Label>Four-plate separation (hover to register)</Label>
+      <figure className="cmyk max-w-[560px]">
+        <div className="print aspect-[16/10]">
+          <div className="size-full bg-linear-135 from-process-yellow via-accent-2-600 to-accent-900" />
         </div>
       </figure>
 
-      <span style={label}>Halftone</span>
-      <figure className="halftone" style={{ maxWidth: 560, aspectRatio: "16 / 10" }}>
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            background: "linear-gradient(90deg, #7d7979, #d7d3d3)",
-          }}
-        />
+      <Label>Halftone</Label>
+      <figure className="halftone aspect-[16/10] max-w-[560px]">
+        <div className="size-full bg-linear-to-r from-neutral-600 to-neutral-300" />
       </figure>
     </main>
   );
