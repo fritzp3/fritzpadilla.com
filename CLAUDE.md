@@ -10,6 +10,7 @@ Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully
 - **Static export only**: `output: 'export'` in `next.config.ts`. There is no Node server at runtime, so:
   - No API routes, Server Actions, middleware, ISR, `cookies()`/`headers()`, or `next/image` optimization (`images.unoptimized: true`).
   - Every dynamic route must implement `generateStaticParams` with `dynamicParams = false`.
+  - In Next 16, `params` is a Promise: type pages with the generated `PageProps<"/work/[slug]">` helper and `await props.params`.
 - **Styling: Tailwind CSS v4** (via `@tailwindcss/postcss`; no `tailwind.config` file).
   - `src/styles/tokens.css` holds the mockup's tokens inside `@theme`. They generate the utilities (`bg-accent`, `text-accent-2-700`, `border-divider`, `rounded-md`, `shadow-lg`, `font-heading`, `text-ink/70`) and remain CSS variables. Tailwind's default colors, radii and shadows are cleared, so only brand values exist.
   - Spacing tokens `--space-1…8` (multiples of 5px) are plain variables. Use them as `p-(--space-3)`, or use arbitrary px values that match the mockup.
@@ -30,7 +31,7 @@ npm run dev          # local dev server
 npm run build        # static export to ./out
 npm run preview      # serve ./out locally (npx serve out) to test the real artifact
 npm run lint
-npm run typecheck    # tsc --noEmit
+npm run typecheck    # next typegen && tsc --noEmit (typegen creates PageProps<"/route"> types)
 npm run test:e2e     # Playwright against ./out
 npm run format       # prettier
 npm run deploy       # used by CI: sync ./out to S3 and invalidate CloudFront (see Deployment)
