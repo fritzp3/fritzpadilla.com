@@ -282,7 +282,7 @@ Name it `fritzpadilla-com-deploy`.
 **IAM → Roles → Create role → Web identity**
 
 - Identity provider: `token.actions.githubusercontent.com`. Audience: `sts.amazonaws.com`.
-- GitHub organization: your GitHub user name. Repository: the repo name. Branch: `main`.
+- GitHub organization: `fritzp3`. Repository: `fritzpadilla.com`. Branch: `main`.
 - Permissions: attach `fritzpadilla-com-deploy`.
 - Role name: `fritzpadilla-com-deploy`.
 
@@ -301,7 +301,7 @@ Then open the role's **Trust relationships** and confirm the policy restricts it
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:<github-user>/<repo>:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:fritzp3/fritzpadilla.com:ref:refs/heads/main"
         }
       }
     }

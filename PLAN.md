@@ -8,14 +8,14 @@ Each phase ends with something you can check before the next one starts. A phase
 
 | Phase                  | State                                                                                                |
 | ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| 0 — Scaffold           | Done, except pushing to GitHub (the repo doesn't exist yet)                                          |
+| 0 — Scaffold           | Done                                                                                                 |
 | 1 — Design foundation  | Done                                                                                                 |
 | 2 — Layout shell       | Done                                                                                                 |
 | 3 — Home page          | Done                                                                                                 |
 | 4 — Case study pages   | Done                                                                                                 |
 | 5 — SEO and quality    | Done                                                                                                 |
 | 6 — AWS setup          | **In progress:** runbook, CloudFront Function and deploy script written, awaiting your console setup |
-| 7 — CI/CD              | Not started (needs the GitHub repo)                                                                  |
+| 7 — CI/CD              | Not started (repo is up: `fritzp3/fritzpadilla.com`)                                                 |
 | 8 — Content and launch | Not started (needs your content)                                                                     |
 
 ## Phase 0 — Scaffold ✅
@@ -23,7 +23,7 @@ Each phase ends with something you can check before the next one starts. A phase
 1. `create-next-app` (TypeScript, App Router, ESLint, `src/` directory), Prettier, `.nvmrc` (Node 22) and `engines`.
 2. `next.config.ts`: `output: 'export'`, `trailingSlash: true`, `images.unoptimized: true`.
 3. npm scripts: `preview`, `typecheck` (runs `next typegen` first), `format`, `test:e2e`, `deploy`.
-4. `git init` and first commit. **Still to do:** push to the GitHub repo once it's created.
+4. `git init` and first commit, pushed to the public GitHub repo `fritzp3/fritzpadilla.com` (its initial README merged in).
 
 ## Phase 1 — Design foundation ✅
 
@@ -81,13 +81,13 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 5. CloudFront distribution: OAC and bucket policy, the function attached, 403/404 → `/404.html`.
 6. First deploy with `npm run deploy` and checks against the `cloudfront.net` address.
 7. Route 53 alias records. **This makes the site live**, so you may want to wait for Phase 8 content.
-8. IAM: GitHub OIDC provider and the deploy role. Needs the GitHub repo.
+8. IAM: GitHub OIDC provider and the deploy role, trusting `repo:fritzp3/fritzpadilla.com`.
 
 **Check:** step 6's `curl` checks pass on the `cloudfront.net` address; after step 7, the same on https://fritzpadilla.com.
 
 ## Phase 7 — CI/CD
 
-1. Create the GitHub repo, push, and finish runbook step 8 with the repo name.
+1. ~~Create the GitHub repo and push~~ (done: `fritzp3/fritzpadilla.com`); finish runbook step 8 with that repo name.
 2. `ci.yml` on pull requests: install, lint, typecheck, build, Playwright (including the Chromium install).
 3. `deploy.yml` on push to `main`: build, then `scripts/deploy.sh` under the OIDC role. Repository variables hold the bucket, distribution ID, role ARN and region.
 
@@ -106,4 +106,3 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 - Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, a main project image, and up to 4 screenshots with captions.
 - Portrait, bio paragraphs, skills list, location, availability date, CV PDF, and GitHub and LinkedIn URLs.
 - Confirmation of the contact email, hello@fritzpadilla.com.
-- The GitHub repository name, once created (for the OIDC trust policy).
