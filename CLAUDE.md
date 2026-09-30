@@ -17,6 +17,7 @@ Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully
   - Layout and one-off styling are utilities in the JSX. Arbitrary values (`text-[clamp(42px,6.4vw,84px)]`) are fine where the mockup uses exact numbers.
   - `src/styles/globals.css` holds element defaults in `@layer base`, and a **short** list of named classes in `@layer components`: `.btn*`, `.tag*`, `.halftone`, `.cmyk`/`.print`, `.cmyk-head`/`.plate*`. Add a class there only when utilities can't express it (pseudo-elements, blend modes, SVG filter references). Never write unlayered CSS, because it would beat every utility.
   - Class order is sorted by `prettier-plugin-tailwindcss`. No CSS Modules and no CSS-in-JS.
+- **Project content:** Markdown files parsed at build time with `yaml` (frontmatter) and `marked` (story body). They run only during the build, never in the browser, so they add no client JavaScript.
 - **Fonts:** Source Serif 4 (400, 400 italic, 600) through `next/font/google`, which self-hosts the files at build time. No runtime calls to Google Fonts.
 - **Package manager:** npm. **Node:** 22 LTS (pinned in `.nvmrc` and `engines`). The machine default is Node 25, so run `nvm use` first.
 - **Next.js 16:** the APIs differ from older versions (for example, middleware is now "Proxy"). Check `node_modules/next/dist/docs/` before using an unfamiliar API.
@@ -57,13 +58,13 @@ src/
     not-found.tsx           # exported as 404.html
     specimen/page.tsx       # TEMPORARY design specimen (noindex); delete before launch
   components/               # Nav, ColorBar, Footer, PlateHeadline, Illustration, SectionLabel,
-                            # LeaderRow, HalftoneImage, PressFigure, ProjectIndex, ProjectGrid,
+                            # LeaderRow, HalftoneImage, ProjectImage, ProjectIndex, ProjectGrid,
                             # PrintPlates (SVG filter defs), PressDriver (client)
   content/
     site.ts                 # site identity, settings flags, nav links, hero/glance/about/contact copy
-    projects.ts             # typed project list (display order = array order)
+    projects/<slug>.md      # one Markdown file per project (frontmatter + ## story sections)
   lib/
-    projects.ts             # getProjects/getProject/getNextProject/getYearRange (derived fields)
+    projects.ts             # reads + validates the .md files; getProjects/getProject/getNextProject/getYearRange
     metadata.ts             # openGraphBase shared by every page's openGraph
     og.tsx                  # build-time ImageResponse cards and monograms
     printPlates.ts          # plate matrices and offsets from the mockup's print-plates.js
@@ -101,7 +102,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - **Layout:** content max width 1200px, side gutter `clamp(20px, 5vw, 72px)`. The nav is `sticky` (not fixed, so it can never cover content) with the multi-color bar along its bottom edge. Below 640px it becomes two rows: name and CTA, then the links. `--nav-h` in `tokens.css` must match its measured height (108px on phones, 74px from 640px), because `scroll-padding-top` uses it to land anchors below the nav. The page must not scroll horizontally at 320px.
 - **Signature treatments.** Each one gets its own component:
   - `PlateHeadline`: the `.cmyk-head` misregistered C/M/Y text plates on the hero H1. It can be switched off with a flag, which renders plain text.
-  - `PressFigure`: the `.cmyk .print` four-plate separation on the case-study hero image, via the compound `#sep-all` filter rendered once in the layout (`PrintPlates`, which also defines the single-plate `#sep-c/m/y/k`).
+  - `.cmyk .print`: the four-plate separation via the compound `#sep-all` filter rendered once in the layout (`PrintPlates`, which also defines the single-plate `#sep-c/m/y/k`). The mockup put it on a case-study hero image, but at the owner's request case studies have no hero: the project image (`ProjectImage`, frontmatter `image`) shows the whole image, unfiltered and uncropped, at its natural aspect and never wider than its own pixels. The treatment is currently only shown on `/specimen/`.
   - `.halftone`: the dot-screen overlay on thumbnails, portrait, and screenshots.
   - `Illustration`: the hand-drawn robot and robot dog, converted path-for-path from the mockup SVG, roughened by the `paisley-paint` turbulence filter.
   - Leader-dot rows (the skills and case-study metadata) and the double-rule "at a glance" strip.
@@ -114,7 +115,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 ## Content
 
-- Projects live in `src/content/projects.ts` as a typed array, in display order. Fields: `slug, title, type, year, summary, role, client, duration, team, tools[], story[{heading, body}]`, plus optional `live`, `repo`, `thumb{src,alt}`, `hero{src,alt}`, and `shots[{src?, alt, caption}]`. The live-site and source buttons only render when `live` or `repo` is set. Derived fields (`num`, `href`, `topTools`, the year range) are computed in `lib/projects.ts`, not stored. Adding a project automatically adds its page, sitemap entry, social card and test coverage.
+- Projects live in `src/content/projects/<slug>.md`, one file per project; the filename is the slug. YAML frontmatter holds `order` (display order), `title, type, year, summary, role, client, duration, team, tools[]`, plus optional `live`, `repo`, `thumb{src,alt}`, `image{src,alt}` (the main project image; formerly `hero`), and `shots[{src?, alt, caption}]`. The body is the story: each `## Heading` starts a section, and its Markdown (paragraphs, lists, emphasis, links) is rendered to HTML at build time with `marked`. External links get the new-tab treatment automatically. `lib/projects.ts` validates every file and fails the build with the file and field name when something is missing. It is build-time only (`node:fs`), so never import it from a client component. In `next dev`, edits to a .md file show on a browser refresh. The live-site and source buttons only render when `live` or `repo` is set. Derived fields (`num`, `href`, `topTools`, the year range) are computed in `lib/projects.ts`, not stored. Adding a project automatically adds its page, sitemap entry, social card and test coverage.
 - The owner supplies the real content: projects, screenshots, portrait, bio, and CV. Until it arrives, use clearly marked placeholders (`TODO:` strings, empty image slots with a neutral fill). Do not reuse the mockup's invented projects (Northline, Fieldnotes, and the others) and do not invent new copy or client names.
 - The hero, "at a glance", About and Contact copy in `src/content/site.ts` came from the mockup and is marked `TODO: confirm` until the owner approves or replaces it. Missing images render as a labelled placeholder panel (`HalftoneImage` with no `src`).
 - Contact is a `mailto:` link only. There is no form, because nothing server-side runs on a static site.

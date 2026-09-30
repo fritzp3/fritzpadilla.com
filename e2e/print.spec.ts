@@ -5,10 +5,9 @@ const mOffset = (page: import("@playwright/test").Page) =>
     Number(document.querySelector('feOffset[data-plate="m"]')!.getAttribute("dx")),
   );
 
-test("hovering a case-study print eases the plates into register", async ({ page }) => {
-  await page.goto("/");
-  const href = await page.locator("#work a").first().getAttribute("href");
-  await page.goto(href!);
+// Case-study project images are plain now; the four-plate print lives on the specimen.
+test("hovering a four-plate print eases the plates into register", async ({ page }) => {
+  await page.goto("/specimen/");
   await page.mouse.move(10, 10);
   await expect.poll(() => mOffset(page)).toBeGreaterThan(3);
   await page.locator(".cmyk .print").hover();

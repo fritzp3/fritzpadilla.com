@@ -3,7 +3,8 @@ import { INK, OFFSETS, matrix } from "@/lib/printPlates";
 /**
  * The Broadsheet separation filters, rendered once in the root layout so
  * `filter: url(#sep-*)` resolves anywhere in the document. `#sep-all` is the
- * compound four-plate filter used by <PressFigure>; PressDriver animates its
+ * compound four-plate filter for `.cmyk .print` figures (currently only the
+ * /specimen/ page; case-study pages show the plain project image). PressDriver animates its
  * feOffset (data-plate) and feColorMatrix (data-plate-mat) nodes.
  */
 export default function PrintPlates() {

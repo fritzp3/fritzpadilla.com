@@ -47,9 +47,15 @@ Each phase ends with something you can check before the next one starts. A phase
 
 ## Phase 4 — Case study pages ✅
 
-1. Typed content model in `src/content/projects.ts`, with helpers in `lib/projects.ts`.
-2. `work/[slug]/page.tsx`: header, facts grid, optional live and source buttons, `PressFigure` hero, three-part story, tools, screenshots, and a next-project link that wraps around.
+1. Content model: one Markdown file per project in `src/content/projects/` (frontmatter fields, `##` story sections), read and validated at build time by `lib/projects.ts`. (Changed from a TypeScript array at your request.)
+2. `work/[slug]/page.tsx`: header, facts grid, optional live and source buttons, project image (changed at your request from the four-plate `PressFigure` hero to a plain, uncropped `ProjectImage`), three-part story, tools, screenshots, and a next-project link that wraps around.
 3. `not-found.tsx`, exported as `404.html`.
+
+### Changes after Phase 4 (at your request)
+
+- **Projects as Markdown.** `src/content/projects.ts` was replaced by one `.md` file per project in `src/content/projects/`. The filename is the slug, the frontmatter holds the fields (`order` sets display order), and each `## Heading` in the body is a story section, rendered with `marked` (paragraphs, lists, emphasis and links; external links open in a new tab). `lib/projects.ts` reads and validates the files at build time and stops the build with the file and field name when something is wrong. The Work section (index and grid layouts) and the case-study pages both read from it.
+- **No hero on case studies.** The four-plate `PressFigure` hero (blurred plates, dot screen, 16:10 crop) was replaced by `ProjectImage`: the whole image, unfiltered and uncropped, at its natural shape and never wider than its own pixels. The frontmatter field is `image` (a leftover `hero` fails the build with a rename hint). The four-plate treatment remains on `/specimen/`, where its e2e hover test now runs.
+- The missing-image placeholder label went from `text-ink/55` to `text-ink/70`, because axe flagged its contrast once the print filter no longer hid it.
 
 ## Phase 5 — SEO and quality ✅
 
@@ -89,7 +95,7 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 
 ## Phase 8 — Content and launch
 
-1. Replace the placeholder projects with yours. Screenshots go in as WebP at 2x under `public/images/projects/<slug>/`.
+1. Replace the placeholder projects (`src/content/projects/*.md`) with yours. Screenshots go in as WebP at 2x under `public/images/projects/<slug>/`.
 2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`).
 3. Confirm or replace every `TODO: confirm` string in `site.ts`: hero, "at a glance" facts, About, skills, contact, description, job title, and the email address.
 4. Delete the temporary `/specimen/` page.
@@ -97,7 +103,7 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 
 ## What I need from you
 
-- Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, hero image, and up to 4 screenshots with captions.
+- Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, a main project image, and up to 4 screenshots with captions.
 - Portrait, bio paragraphs, skills list, location, availability date, CV PDF, and GitHub and LinkedIn URLs.
 - Confirmation of the contact email, hello@fritzpadilla.com.
 - The GitHub repository name, once created (for the OIDC trust policy).

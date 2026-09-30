@@ -3,12 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import HalftoneImage from "@/components/HalftoneImage";
 import LeaderRow from "@/components/LeaderRow";
-import PressFigure from "@/components/PressFigure";
+import ProjectImage from "@/components/ProjectImage";
 import SectionLabel from "@/components/SectionLabel";
 import { openGraphBase } from "@/lib/metadata";
 import { getNextProject, getProject, getProjects } from "@/lib/projects";
 
-// Static export: only the slugs listed in content/projects.ts exist.
+// Static export: only the slugs in src/content/projects/*.md exist.
 export const dynamicParams = false;
 
 export function generateStaticParams() {
@@ -112,11 +112,11 @@ export default async function CaseStudy(props: PageProps<"/work/[slug]">) {
         )}
       </div>
 
-      {/* ── Hero print ─────────────────────────────────────────────── */}
-      <PressFigure
-        src={p.hero?.src}
-        alt={p.hero?.alt ?? ""}
-        placeholder={`Hero screenshot — ${p.title}`}
+      {/* ── Project image ──────────────────────────────────────────── */}
+      <ProjectImage
+        src={p.image?.src}
+        alt={p.image?.alt ?? ""}
+        placeholder={`Project image — ${p.title}`}
         className="mt-[clamp(48px,7vw,84px)]"
       />
 
@@ -126,9 +126,11 @@ export default async function CaseStudy(props: PageProps<"/work/[slug]">) {
           {p.story.map((s) => (
             <div key={s.heading}>
               <h2 className="m-0 text-2xl leading-[1.2] tracking-[-0.01em]">{s.heading}</h2>
-              <p className="mt-3.5 mb-0 text-justify text-[15.5px] leading-[1.8] hyphens-auto text-ink/85">
-                {s.body}
-              </p>
+              {/* Rendered at build time from the project's own Markdown file. */}
+              <div
+                className="mt-3.5 text-justify text-[15.5px] leading-[1.8] hyphens-auto text-ink/85 [&_li]:mt-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&>*]:m-0 [&>*+*]:mt-3.5"
+                dangerouslySetInnerHTML={{ __html: s.html }}
+              />
             </div>
           ))}
         </div>
