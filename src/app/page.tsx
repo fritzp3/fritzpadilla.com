@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import HalftoneImage from "@/components/HalftoneImage";
 import Illustration from "@/components/Illustration";
 import LeaderRow from "@/components/LeaderRow";
 import PlateHeadline from "@/components/PlateHeadline";
+import PortraitSwap from "@/components/PortraitSwap";
 import ProjectGrid from "@/components/ProjectGrid";
 import ProjectIndex from "@/components/ProjectIndex";
 import SectionLabel from "@/components/SectionLabel";
@@ -90,10 +90,10 @@ export default function Home() {
       <section id="about" aria-labelledby="about-heading" className="py-[clamp(40px,6vw,84px)]">
         <SectionLabel>About</SectionLabel>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] items-start gap-x-[clamp(28px,5vw,80px)] gap-y-10">
-          <HalftoneImage
-            src={about.portrait.src}
-            alt={about.portrait.alt}
-            placeholder="Portrait"
+          <PortraitSwap
+            portrait={about.portrait}
+            alternate={about.codePortrait}
+            label={about.codePortrait.label}
             sizes="(min-width: 768px) 420px, 100vw"
             className="aspect-[4/5] max-w-[420px]"
           />

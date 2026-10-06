@@ -54,7 +54,16 @@ export const about = {
     "I’m happiest where business goals, design and engineering meet — translating between them, mentoring developers, and making sure what ships is both well built and worth using.",
   ],
   // TODO: add the portrait at public/images/portrait.webp (4:5) and set src.
-  portrait: { src: undefined as string | undefined, alt: "Portrait of Fritz Padilla" },
+  portrait: {
+    src: "/images/portrait-2.jpg" as string | undefined,
+    alt: "Portrait of Fritz Padilla",
+  },
+  // Clicking the portrait swaps it for this one, once per page load.
+  codePortrait: {
+    src: "/images/fritz-made-of-code.webp",
+    alt: "Portrait of Fritz Padilla made of lines of code",
+    label: "Reveal the code behind the portrait",
+  },
   skills: [
     { area: "Leadership", detail: "Team leadership, mentoring, delivery" },
     { area: "Strategy", detail: "Technical roadmaps, stakeholder alignment" },

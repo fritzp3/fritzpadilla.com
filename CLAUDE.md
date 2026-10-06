@@ -59,7 +59,8 @@ src/
     specimen/page.tsx       # TEMPORARY design specimen (noindex); delete before launch
   components/               # Nav, ColorBar, Footer, PlateHeadline, Illustration, SectionLabel,
                             # LeaderRow, HalftoneImage, ProjectImage, ProjectIndex, ProjectGrid,
-                            # PrintPlates (SVG filter defs), PressDriver (client)
+                            # PrintPlates (SVG filter defs), PressDriver (client),
+                            # PortraitSwap (client; About portrait → code portrait, once per load)
   content/
     site.ts                 # site identity, settings flags, nav links, hero/glance/about/contact copy
     projects/<slug>.md      # one Markdown file per project (frontmatter + ## story sections)
@@ -111,7 +112,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - **Contrast:** the mockup's bright `--color-accent` (#0088b0) is only 3.65:1 on paper, so it is for decoration only (print plates, nav color bar, focus rings). Anything carrying text (buttons, ghost links, outline tags, links) uses `accent-700` or darker (5.7:1). Muted ink text must be at least `text-ink/70`. The owner approved this deviation from the mockup.
 - **Automated a11y checks** run axe against the built pages, excluding the decorative `.plate` spans (aria-hidden repeats of the real text).
 - **Settings flags** live in `settings` in `site.ts`: `headlinePlates` (plate headline on/off), `showAvailability`, and `workLayout` (`"index"`, the default numbered rows, or `"grid"`).
-- Use Server Components by default. Add `'use client'` only for the press-lean effect and similar interactive pieces.
+- Use Server Components by default. Add `'use client'` only for the press-lean effect and similar interactive pieces (`PortraitSwap`: clicking the About portrait swaps it to `about.codePortrait` once, with no way back until reload; tested in `e2e/portrait.spec.ts`).
 
 ## Content
 
