@@ -110,7 +110,7 @@ Ways to pick it up later:
 
 - Merge `contact-form` as built (one site, AWS backend, no public email).
 - Build a shared forms service (API Gateway, Lambda, DynamoDB, SES, in its own repo with AWS SAM) that fritzpadilla.com, TechAndPizza.com and MotoDestinations.com all post to, and point the form at it.
-- Use a hosted form service (Formspree, Basin, Web3Forms) if a third party seeing messages is acceptable.
+- Use a hosted form service (Formspree, Basin, Web3Forms). Third-party tools are fine on this site.
 
 ## What I need from you
 
