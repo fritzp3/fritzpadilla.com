@@ -17,6 +17,7 @@ Each phase ends with something you can check before the next one starts. A phase
 | 6 — AWS setup          | **In progress:** runbook, CloudFront Function and deploy script written, awaiting your console setup |
 | 7 — CI/CD              | Not started (repo is up: `fritzp3/fritzpadilla.com`)                                                 |
 | 8 — Content and launch | Not started (needs your content)                                                                     |
+| 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 10)         |
 
 ## Phase 0 — Scaffold ✅
 
@@ -101,8 +102,18 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 4. Delete the temporary `/specimen/` page.
 5. Final review against the mockup, e2e and Lighthouse runs, then point DNS (runbook step 7) if it isn't already.
 
+## Phase 9 — Contact form (parked)
+
+A form from the revised mockup (`design/Fritz Padilla Portfolio-with-contact.html`) was built, with a Lambda behind CloudFront that saved each message to DynamoDB and emailed it through SES. On 2026-10-06 you chose the simpler option for now: publish `hello@fritzpadilla.com` as a `mailto:` link, with mail forwarded to your inbox (runbook step 10). The full form work, including its runbook step and tests, is committed on the branch `contact-form`.
+
+Ways to pick it up later:
+
+- Merge `contact-form` as built (one site, AWS backend, no public email).
+- Build a shared forms service (API Gateway, Lambda, DynamoDB, SES, in its own repo with AWS SAM) that fritzpadilla.com, TechAndPizza.com and MotoDestinations.com all post to, and point the form at it.
+- Use a hosted form service (Formspree, Basin, Web3Forms) if a third party seeing messages is acceptable.
+
 ## What I need from you
 
 - Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, a main project image, and up to 4 screenshots with captions.
 - Portrait, bio paragraphs, skills list, location, availability date, CV PDF, and GitHub and LinkedIn URLs.
-- Confirmation of the contact email, hello@fritzpadilla.com.
+- Confirmation of the contact email, hello@fritzpadilla.com, and the inbox it should forward to (runbook step 10).

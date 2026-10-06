@@ -19,7 +19,9 @@ This guide sets up hosting for the static site by hand in the AWS console: a pri
 
 Fill this in; you'll need these in later steps and for GitHub Actions in Phase 7.
 
-| Item                    | Value                                                 |
+| Item | Value |
+
+| Email forwarding        | provider, and the inbox hello@ forwards to            |
 | ----------------------- | ----------------------------------------------------- |
 | AWS account ID          |                                                       |
 | S3 bucket name          |                                                       |
@@ -314,6 +316,25 @@ Record the role ARN. In Phase 7 it goes into the repository variables along with
 ## 9. Optional: budget alert
 
 **Billing → Budgets → Create budget → Use a template → Monthly cost budget.** Set it to $5 with your email. It's a cheap safety net against surprises, such as a traffic spike or a misconfiguration.
+
+## 10. Email: hello@fritzpadilla.com
+
+The site publishes `hello@fritzpadilla.com` (nav button, Contact section, structured data). Route 53 only does DNS and can't receive mail, so a forwarding service receives it and passes it to your own inbox, such as Gmail. These steps use **ImprovMX** (free plan) as the example; any forwarding service works the same way, with its own record values.
+
+1. Sign up at improvmx.com, add the domain `fritzpadilla.com`, and create the alias `hello` → your inbox. (A catch-all `*` alias also works.)
+2. **Route 53 → Hosted zones → fritzpadilla.com → Create record**, using the exact values the provider's dashboard shows. For ImprovMX they are:
+
+   | Record name | Type | Value                                                                   |
+   | ----------- | ---- | ----------------------------------------------------------------------- |
+   | _(blank)_   | MX   | `10 mx1.improvmx.com` and `20 mx2.improvmx.com` (one record, two lines) |
+   | _(blank)_   | TXT  | `"v=spf1 include:spf.improvmx.com ~all"`                                |
+   | `_dmarc`    | TXT  | `"v=DMARC1; p=none"`                                                    |
+
+   A domain can only have **one** SPF (`v=spf1`) record. If a TXT record at the apex already has one, add the `include:` to it instead of creating a second.
+
+3. Wait for the provider's dashboard to show the records as valid (usually minutes).
+
+**Check:** send a message to `hello@fritzpadilla.com` from a different account than the forwarding target, and confirm it arrives. Replies go out from your own address; to reply _as_ hello@, set up the provider's SMTP sending (a paid feature on ImprovMX) and Gmail's **Send mail as**.
 
 ---
 
