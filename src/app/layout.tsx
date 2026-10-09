@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   authors: [{ name: site.name, url: site.url }],
   openGraph: { ...openGraphBase, type: "website" },
   twitter: { card: "summary_large_image" },
+  icons: {
+    icon: { url: "/icons/fp-64.png", type: "image/png", sizes: "64x64" },
+    apple: { url: "/icons/fp-180.png", type: "image/png", sizes: "180x180" },
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

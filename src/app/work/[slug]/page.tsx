@@ -5,7 +5,7 @@ import HalftoneImage from "@/components/HalftoneImage";
 import LeaderRow from "@/components/LeaderRow";
 import ProjectImage from "@/components/ProjectImage";
 import SectionLabel from "@/components/SectionLabel";
-import { openGraphBase } from "@/lib/metadata";
+import { ogImage, openGraphBase } from "@/lib/metadata";
 import { getNextProject, getProject, getProjects } from "@/lib/projects";
 
 // Static export: only the slugs in src/content/projects/*.md exist.
@@ -29,6 +29,7 @@ export async function generateMetadata(props: PageProps<"/work/[slug]">): Promis
       title: p.title,
       description: p.summary,
       url: p.href,
+      images: [ogImage(`${p.href}og.png`, `${p.title} — case study`)],
     },
   };
 }

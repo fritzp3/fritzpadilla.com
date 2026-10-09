@@ -51,9 +51,9 @@ src/
     layout.tsx              # <html>, font, skip link, Nav, Footer, PrintPlates + PressDriver, metadata defaults
     page.tsx                # Home: hero, at-a-glance, About, Work, Contact; Person JSON-LD
     work/[slug]/page.tsx    # Case study (generateStaticParams, dynamicParams = false)
-    work/[slug]/opengraph-image.tsx  # per-project social card
-    opengraph-image.tsx     # home social card
-    icon.tsx, apple-icon.tsx  # "FP" monogram favicons
+    work/[slug]/og.png/route.tsx  # per-project social card (route handler → out/work/<slug>/og.png)
+    og.png/route.tsx        # home social card (→ out/og.png)
+    icons/fp-64.png/, icons/fp-180.png/  # "FP" monogram favicon and Apple touch icon (route handlers)
     sitemap.ts, robots.ts   # static metadata routes (force-static)
     not-found.tsx           # exported as 404.html
     specimen/page.tsx       # TEMPORARY design specimen (noindex); delete before launch
@@ -126,8 +126,8 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 - `metadataBase` is `https://fritzpadilla.com`. Every page sets a canonical URL. A page's `openGraph` **replaces** the layout's, so always spread `openGraphBase` from `lib/metadata.ts` into it.
 - `sitemap.ts` and `robots.ts` need `dynamic = "force-static"` for the export. The specimen page is `noindex` and left out of the sitemap.
-- Social previews (`opengraph-image.tsx` for the home page and each project) and the favicons (`icon.tsx`, `apple-icon.tsx`) render at build time via `lib/og.tsx`. It reads colors from `tokens.css`, because Satori can't use CSS variables, and uses the TTFs in `assets/fonts/` (SIL OFL; the license is alongside).
-- **These image routes export without a file extension** (`out/opengraph-image`, `out/icon`, `out/apple-icon`, `out/work/<slug>/opengraph-image`). The deploy must upload them with `Content-Type: image/png`, or S3 serves them as binary.
+- Social cards (`og.png/route.tsx` for the home page, `work/[slug]/og.png/route.tsx` for each project) and the icons (`icons/fp-64.png`, `icons/fp-180.png`) are static route handlers that render at build time via `lib/og.tsx`. It reads colors from `tokens.css`, because Satori can't use CSS variables, and uses the TTFs in `assets/fonts/` (SIL OFL; the license is alongside).
+- **Every exported image must end in `.png`.** Don't use Next's `opengraph-image`/`icon`/`apple-icon` file conventions: they export without a file extension, and Amplify then adds a trailing slash and serves no image type. Pages link the images through metadata: `openGraphBase` in `lib/metadata.ts` carries the home card (case studies override `images` with `ogImage()`), and the layout's `icons` links the favicons.
 - The home page has JSON-LD `Person` data. `site.profiles` feeds `sameAs`; keep it empty until the real URLs are known.
 
 ## Deployment (AWS)

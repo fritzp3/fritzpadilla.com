@@ -1,19 +1,17 @@
 import { site } from "@/content/site";
 import { getProject, getProjects } from "@/lib/projects";
-import { ogSize, renderCard } from "@/lib/og";
+import { renderCard } from "@/lib/og";
 
+// Each case study's social card, exported as out/work/<slug>/og.png.
 export const dynamic = "force-static";
 export const dynamicParams = false;
-export const size = ogSize;
-export const contentType = "image/png";
-export const alt = "Case study";
 
 export function generateStaticParams() {
   return getProjects().map((p) => ({ slug: p.slug }));
 }
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export async function GET(_req: Request, ctx: RouteContext<"/work/[slug]/og.png">) {
+  const { slug } = await ctx.params;
   const p = getProject(slug)!;
   return renderCard({
     kicker: `Case study № ${p.num} · ${p.type}`,
