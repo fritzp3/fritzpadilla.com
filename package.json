@@ -10,8 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:e2e": "playwright test",
-    "deploy": "bash scripts/deploy.sh"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "marked": "^18.0.14",

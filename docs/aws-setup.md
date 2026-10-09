@@ -1,325 +1,153 @@
 # AWS setup runbook: fritzpadilla.com
 
-This guide sets up hosting for the static site by hand in the AWS console: a private S3 bucket, served through CloudFront over HTTPS, on the `fritzpadilla.com` domain in Route 53. It's written to be followed top to bottom, once. Keep it accurate: whenever a setting changes in the console, update this file in the same commit (see CLAUDE.md).
+This guide sets up hosting for the static site with **AWS Amplify Hosting**, connected to the GitHub repo, on the `fritzpadilla.com` domain in Route 53. Every push to `main` builds the site and deploys it; there are no pull request previews. It's written to be followed top to bottom, once. Keep it accurate: whenever a setting changes in the console, update this file in the same commit (see CLAUDE.md).
 
-**Time:** about an hour, most of it waiting for the certificate and the distribution to deploy.
+**Time:** about 30 minutes, most of it waiting for the first build and the domain's certificate.
 
-**Cost:** a few dollars a month at most. The Route 53 hosted zone is $0.50 a month, and S3 and CloudFront cost cents at portfolio traffic. The certificate is free.
+**Cost:** cents a month at portfolio traffic. Amplify bills build minutes and data served; the Route 53 hosted zone is $0.50 a month; the certificate is free.
 
 > Console screens change over time. If a label below doesn't match exactly, look for the setting by meaning. The values are what matter.
 
+> **This repo is public.** Never write the AWS account ID, the Amplify app ID, the `amplifyapp.com` address or any ARN into this file or any other committed file. Keep them in a password manager. The steps below use placeholders such as `<app-id>`.
+
 ## Before you start
 
-- Sign in to the AWS console as an IAM user or IAM Identity Center user with admin rights, **not the root user**.
-- Install and configure the AWS CLI with that user (`aws configure sso` or `aws configure`). Check it works with `aws sts get-caller-identity`.
-- `fritzpadilla.com` must have a **public hosted zone in Route 53**, and the domain's name servers must point at it.
-- Build the site once: `nvm use && npm run build`.
+- Sign in to the AWS console as an IAM user with admin rights, **not the root user**. Use region **US West (Oregon), `us-west-2`**.
+- `fritzpadilla.com` has a **public hosted zone in Route 53** in the same account, and the domain's name servers point at it.
+- The repo already contains what Amplify needs, pushed to `main`:
+  - `amplify.yml`, the build settings (Node 22 from `.nvmrc`, then `npm ci` and `npm run build`, publishing `out/`)
+  - social preview images and favicons that build with a `.png` extension. Amplify adds a trailing slash to extensionless paths and serves them without an image type, so extensionless images would break.
 
-### Values to record as you go
+### Values to record privately as you go
 
-Fill this in; you'll need these in later steps and for GitHub Actions in Phase 7.
-
-| Item | Value |
-
-| Email forwarding        | provider, and the inbox hello@ forwards to            |
-| ----------------------- | ----------------------------------------------------- |
-| AWS account ID          |                                                       |
-| S3 bucket name          |                                                       |
-| Certificate ARN         | `arn:aws:acm:us-east-1:…`                             |
-| CloudFront function     | `fritzpadilla-com-viewer-request`                     |
-| Response headers policy | `fritzpadilla-com-security-headers`                   |
-| Distribution ID         | `E…`                                                  |
-| Distribution domain     | `d….cloudfront.net`                                   |
-| Deploy role ARN         | `arn:aws:iam::<account>:role/fritzpadilla-com-deploy` |
-
-**Region:** use **US East (N. Virginia), `us-east-1`** for everything. CloudFront only accepts certificates from `us-east-1`, and keeping the bucket there too keeps things in one place.
+| Item                    | Where to find it                                   |
+| ----------------------- | -------------------------------------------------- |
+| Amplify app ID          | the app's **Overview** page, or in its console URL |
+| Default Amplify address | `https://main.<app-id>.amplifyapp.com`             |
+| Email forwarding        | provider, and the inbox hello@ forwards to         |
 
 ---
 
-## 1. S3 bucket
+## 1. Create the Amplify app
 
-**S3 → Create bucket**
+**Amplify → Create new app → GitHub → Next.** Authorize the **AWS Amplify** GitHub App when asked, for the `fritzp3/fritzpadilla.com` repository only.
 
-| Setting             | Value                                                             |
-| ------------------- | ----------------------------------------------------------------- |
-| Bucket type         | General purpose                                                   |
-| Region              | `us-east-1`                                                       |
-| Bucket name         | e.g. `fritzpadilla-com-site` (must be globally unique; record it) |
-| Object Ownership    | **ACLs disabled (recommended)**                                   |
-| Block Public Access | **Block _all_ public access: on** (all four boxes)                |
-| Bucket Versioning   | **Enable** (lets you recover from a bad deploy)                   |
-| Default encryption  | SSE-S3 (the default)                                              |
+| Setting                 | Value                                                                                |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| Repository              | `fritzp3/fritzpadilla.com`                                                           |
+| Branch                  | `main`                                                                               |
+| Monorepo                | off                                                                                  |
+| App name                | `fritzpadilla-com`                                                                   |
+| Build settings          | Amplify should say it found `amplify.yml` in the repo. Don't edit it in the console. |
+| Service role            | **Create and use a new service role**                                                |
+| Advanced: env variables | none                                                                                 |
 
-Do **not** turn on "Static website hosting". CloudFront reads the bucket privately, through Origin Access Control, over the bucket's normal REST endpoint.
+**Save and deploy.** The first build starts right away. Let it run; step 2 checks it.
 
-**Optional, recommended: keep versioning from growing forever.** Open the bucket, go to **Management → Create lifecycle rule**. Name it `expire-old-versions`, apply it to all objects, choose **Permanently delete noncurrent versions of objects**, and set it to **30** days after they become noncurrent.
+## 2. Make sure it's hosted as a static site
 
-## 2. TLS certificate (ACM, us-east-1)
+Amplify detects Next.js and may set the app up for its server (SSR) hosting, which this site doesn't use and which doesn't support Next.js 16. The app must use the static platform, **WEB**.
 
-Switch the console region to **US East (N. Virginia)** first.
+1. Open the app's **App settings → General settings**. If **Platform** (or "Framework") says **Web** or **Static**, skip to step 3. If it says **Web compute**, **SSR** or **Next.js - SSR**, continue.
+2. In CloudShell (the terminal icon in the console's top bar) or a local terminal with admin credentials, run:
 
-**Certificate Manager → Request → Request a public certificate**
+   ```bash
+   aws amplify update-app --region us-west-2 --app-id <app-id> --platform WEB
+   ```
 
-| Setting               | Value                                             |
-| --------------------- | ------------------------------------------------- |
-| Fully qualified names | `fritzpadilla.com` **and** `www.fritzpadilla.com` |
-| Validation method     | DNS validation                                    |
-| Key algorithm         | RSA 2048 (default)                                |
+3. **Hosting → Deployments → Redeploy this version** (or push any commit) so the build runs again on the static platform.
 
-After requesting, open the certificate and click **Create records in Route 53**, then **Create records**. The status changes from _Pending validation_ to **Issued**, usually within a few minutes. Record the certificate ARN.
+**Check:** the build log's **Deploy** step lists files from `out/` (such as `index.html` and `404.html`), not a `.next` compute bundle.
 
-## 3. CloudFront Function
+## 3. Rewrites and redirects
 
-This function redirects `www` to the apex domain and maps clean URLs like `/work/x/` to `index.html` files in the bucket. The source is [`cloudfront-function.js`](cloudfront-function.js); its behavior is covered by `e2e/cloudfront-function.spec.ts`.
-
-**CloudFront → Functions → Create function**
-
-1. Name: `fritzpadilla-com-viewer-request`. Runtime: **cloudfront-js-2.0**.
-2. In the **Build** tab, replace the example code with the full contents of `docs/cloudfront-function.js`, then **Save changes**.
-3. **Test** tab (optional sanity check): event type _Viewer Request_, stage _Development_. With URL path `/work/project-1/` the result should show the request URI `/work/project-1/index.html`. With `/work/project-1` it should show a 301 to `/work/project-1/`.
-4. **Publish** tab: **Publish function**. An unpublished function can't be attached to the distribution.
-
-## 4. Response headers policy (security headers)
-
-**CloudFront → Policies → Response headers → Create response headers policy**
-
-Name: `fritzpadilla-com-security-headers`
-
-Under **Security headers**, turn on:
-
-| Header                    | Setting                                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------------- |
-| Strict-Transport-Security | max-age **63072000** (2 years), **includeSubDomains** on, preload **off**, Origin override **on** |
-| X-Content-Type-Options    | on (`nosniff`), Origin override on                                                                |
-| X-Frame-Options           | **DENY**, Origin override on                                                                      |
-| Referrer-Policy           | **strict-origin-when-cross-origin**, Origin override on                                           |
-| Content-Security-Policy   | the policy below, Origin override on                                                              |
-
-Content-Security-Policy value (one line):
-
-```
-default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
-```
-
-This policy was tested against the built site: every page, client-side navigation, the hover effect and the web font all work, with zero violations. Next's static export writes inline bootstrap scripts, which is why `script-src` needs `'unsafe-inline'`; a stricter policy breaks the site. If you later add third-party scripts, analytics or embedded media, the policy must be extended, and re-tested.
-
-Leave CORS and custom headers off. Under **Remove headers**, you may add `server` to hide `Server: AmazonS3`; this is optional. **Create**.
-
-## 5. CloudFront distribution
-
-**CloudFront → Distributions → Create distribution.** If the console offers a choice of pricing plan, a free or flat-rate plan is plenty for a portfolio. Otherwise pay-as-you-go is fine.
-
-**Origin**
-
-| Setting       | Value                                                                                             |
-| ------------- | ------------------------------------------------------------------------------------------------- |
-| Origin domain | pick the bucket from the list: `<bucket>.s3.us-east-1.amazonaws.com` (**not** a website endpoint) |
-| Origin access | **Origin access control settings (recommended)** → **Create new OAC** (defaults: sign requests)   |
-| Origin path   | empty                                                                                             |
-
-**Default cache behavior**
-
-| Setting                        | Value                                                                         |
-| ------------------------------ | ----------------------------------------------------------------------------- |
-| Viewer protocol policy         | **Redirect HTTP to HTTPS**                                                    |
-| Allowed HTTP methods           | GET, HEAD                                                                     |
-| Cache policy                   | **CachingOptimized** (managed)                                                |
-| Origin request policy          | none                                                                          |
-| Response headers policy        | `fritzpadilla-com-security-headers`                                           |
-| Compress objects automatically | Yes                                                                           |
-| Function associations          | **Viewer request** → CloudFront Functions → `fritzpadilla-com-viewer-request` |
-
-CachingOptimized honors the `Cache-Control` headers that the deploy script sets. Pages are kept at the edge until each deploy invalidates them, and hashed assets are cached for a year.
-
-**Web Application Firewall:** choose **Do not enable security protections**, unless your pricing plan includes WAF at no extra cost. A static site has nothing for WAF to protect, and it adds a monthly charge.
-
-**Settings**
-
-| Setting                         | Value                                                                  |
-| ------------------------------- | ---------------------------------------------------------------------- |
-| Price class                     | **Use only North America and Europe** (cheapest; fine for a portfolio) |
-| Alternate domain names (CNAMEs) | `fritzpadilla.com` and `www.fritzpadilla.com`                          |
-| Custom SSL certificate          | the certificate from step 2                                            |
-| Security policy                 | **TLSv1.2_2021** (recommended)                                         |
-| Supported HTTP versions         | HTTP/2 **and** HTTP/3                                                  |
-| Default root object             | `index.html`                                                           |
-| IPv6                            | On                                                                     |
-| Standard logging                | Off                                                                    |
-
-**Create distribution.**
-
-### 5a. Bucket policy
-
-After creation, the console shows a yellow banner, **"The S3 bucket policy needs to be updated"**, with a **Copy policy** button. Copy it, open the bucket, go to **Permissions → Bucket policy → Edit**, paste it, and **Save**. It will look like this, with your values:
+**Hosting → Rewrites and redirects → Manage redirects → Edit JSON** (or the table view). Replace the contents with these two rules, in this order:
 
 ```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowCloudFrontServicePrincipal",
-      "Effect": "Allow",
-      "Principal": { "Service": "cloudfront.amazonaws.com" },
-      "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::<bucket>/*",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceArn": "arn:aws:cloudfront::<account-id>:distribution/<distribution-id>"
-        }
-      }
-    }
-  ]
-}
+[
+  {
+    "source": "https://www.fritzpadilla.com",
+    "status": "301",
+    "target": "https://fritzpadilla.com",
+    "condition": null
+  },
+  {
+    "source": "/<*>",
+    "status": "404",
+    "target": "/404.html",
+    "condition": null
+  }
+]
 ```
 
-Only this distribution can read the bucket; nobody can reach it directly.
+- The first sends `www` to the apex domain; Amplify appends the path and query string. It does nothing until step 5 connects the domain.
+- The second replaces Amplify's default `/<*>` → `/index.html` rule. A 404 rule only applies when no file matches, so real pages and images are unaffected; unknown paths get the site's 404 page with status 404.
 
-### 5b. Error pages
+**Save.** Clean URLs need no rules: Amplify serves `/work/x/` from `/work/x/index.html` and adds the trailing slash to `/work/x` itself, which matches the site's `trailingSlash: true`.
 
-Open the distribution and go to **Error pages → Create custom error response**. Create **two** responses:
+## 4. First deploy and check (before DNS)
 
-| HTTP error code | Error caching min TTL | Customize response | Response page path | HTTP response code |
-| --------------- | --------------------- | ------------------ | ------------------ | ------------------ |
-| 403             | 60                    | Yes                | `/404.html`        | **404**            |
-| 404             | 60                    | Yes                | `/404.html`        | **404**            |
+Open the default address, `https://main.<app-id>.amplifyapp.com`, and check:
 
-S3 returns **403**, not 404, for a missing key when CloudFront can't list the bucket. The first rule turns that into the site's 404 page with the correct status.
+- [ ] `/` loads the home page, styled, with the web font.
+- [ ] A project page, `/work/<slug>/`, loads.
+- [ ] `/work/<slug>` (no trailing slash) redirects to `/work/<slug>/`.
+- [ ] `/no-such-page/` shows the site's 404 page. In the browser's network panel, its status is **404**.
+- [ ] The favicon shows in the tab, and the social preview image opens as an image (its URL is the `og:image` value in the page source).
 
-Record the **Distribution ID** and **Distribution domain name**. Wait until **Last modified** changes from _Deploying_ to a date, which takes about 5 minutes.
-
-## 6. First deploy and check (before DNS)
-
-From the project folder, with your AWS CLI profile active:
+Or from a terminal (use `/usr/bin/curl` on this Mac):
 
 ```bash
-nvm use && npm run build
-export S3_BUCKET=<bucket> CLOUDFRONT_DISTRIBUTION_ID=<distribution-id>
-
-DRYRUN=1 npm run deploy   # preview: lists every upload and delete, changes nothing
-npm run deploy            # upload and invalidate
+SITE=https://main.<app-id>.amplifyapp.com
+/usr/bin/curl -sI $SITE/ | head -1                       # HTTP/2 200
+/usr/bin/curl -sI $SITE/work/<slug> | grep -i location   # …/work/<slug>/
+/usr/bin/curl -sI $SITE/no-such-page/ | head -1          # HTTP/2 404
 ```
 
-Then check the distribution's own address. Use `/usr/bin/curl`: the `curl` first on this Mac's PATH is outdated and fails TLS checks.
+Fix anything that fails before step 5: until then, the live domain still serves the old redirect.
+
+## 5. Custom domain (the cutover)
+
+Today `fritzpadilla.com` redirects to FritzPadilla.me through an S3 website bucket. These two Route 53 records do that, and Amplify replaces them in this step:
+
+- `fritzpadilla.com`: **A**, alias to `s3-website-us-west-2.amazonaws.com`
+- `www.fritzpadilla.com`: **CNAME** to `fritzpadilla.com`
+
+Leave the **NS**, **SOA**, and any **MX** and **TXT** (email) records alone.
+
+**Hosting → Custom domains → Add domain.**
+
+1. Domain: `fritzpadilla.com`. Amplify finds the Route 53 hosted zone. **Configure domain.**
+2. Subdomains: the root (`fritzpadilla.com`, blank prefix) → branch `main`, and `www` → branch `main`.
+3. **Untick "Setup redirect from https://fritzpadilla.com to https://www.fritzpadilla.com".** That redirect goes the wrong way; the rule in step 3 sends `www` to the apex instead.
+4. Certificate: **Amplify managed certificate**.
+5. **Add domain.**
+
+Amplify creates the certificate's validation record and the domain records in Route 53. The status goes from _SSL creation_ to _SSL configuration_ to _Domain activation_ to **Available**, usually within 30 minutes (DNS can take longer).
+
+If Amplify reports that the records already exist or conflict, delete the two old records listed above in **Route 53 → Hosted zones → fritzpadilla.com**, then **Retry** in Amplify. The domain is unreachable for those few minutes.
+
+**Check:**
 
 ```bash
-D=https://<distribution-domain>.cloudfront.net
-/usr/bin/curl -sI $D/ | grep -iE '^(HTTP|content-type|cache-control|strict-transport|content-security)'
-/usr/bin/curl -sI $D/work/project-1                  # 301 → /work/project-1/
-/usr/bin/curl -sI $D/work/project-1/ | head -1       # HTTP/2 200
-/usr/bin/curl -sI $D/opengraph-image | grep -i content-type   # image/png
-/usr/bin/curl -sI $D/no-such-page/ | head -1         # HTTP/2 404
+/usr/bin/curl -sI https://fritzpadilla.com/ | head -1                      # HTTP/2 200
+/usr/bin/curl -sI https://www.fritzpadilla.com/work/ | grep -i location    # https://fritzpadilla.com/work/
+/usr/bin/curl -sI http://fritzpadilla.com/ | grep -i location              # https://fritzpadilla.com/
 ```
 
-Also open `$D/` in a browser. The page should look exactly like `npm run preview`, and a made-up path should show the "This page isn't in print." 404 page.
+Then repeat the checklist in step 4 on `https://fritzpadilla.com`.
 
-## 7. DNS (Route 53)
+## 6. Clean up the old redirect
 
-**Route 53 → Hosted zones → fritzpadilla.com → Create record.** Create four alias records:
+Once step 5 is **Available** and checked, the old `fritzpadilla.com` S3 bucket (us-west-2, website hosting set to redirect to FritzPadilla.me) serves nothing. **S3 → Buckets → fritzpadilla.com → Delete.** It holds no files.
 
-| Record name                  | Type | Alias | Route traffic to                                         |
-| ---------------------------- | ---- | ----- | -------------------------------------------------------- |
-| _(blank)_ `fritzpadilla.com` | A    | Yes   | Alias to CloudFront distribution → pick the distribution |
-| _(blank)_ `fritzpadilla.com` | AAAA | Yes   | same                                                     |
-| `www`                        | A    | Yes   | same                                                     |
-| `www`                        | AAAA | Yes   | same                                                     |
+## 7. Optional: budget alert
 
-If records for these names already exist, for example from an old host, edit them rather than adding duplicates. Changes usually resolve within a few minutes.
+**Billing → Budgets → Create budget → Use a template → Monthly cost budget.** Set it to $5 with your email. It's a cheap safety net against surprises, such as a traffic spike or a runaway build.
 
-Check:
+## 8. Email: hello@fritzpadilla.com
 
-```bash
-/usr/bin/curl -sI https://fritzpadilla.com/ | head -1                  # HTTP/2 200
-/usr/bin/curl -sI https://www.fritzpadilla.com/work/project-1/ | grep -i location # https://fritzpadilla.com/work/project-1/
-/usr/bin/curl -sI http://fritzpadilla.com/ | head -1                   # 301 (to HTTPS)
-```
-
-## 8. GitHub deploy access (do this once the GitHub repo exists)
-
-This lets the Phase 7 GitHub Actions workflow deploy with short-lived credentials. No AWS keys are stored in GitHub.
-
-### 8a. Identity provider
-
-**IAM → Identity providers → Add provider**
-
-- Provider type: **OpenID Connect**
-- Provider URL: `https://token.actions.githubusercontent.com`
-- Audience: `sts.amazonaws.com`
-
-If the account already has this provider, skip this step; there can only be one.
-
-### 8b. Deploy permissions policy
-
-**IAM → Policies → Create policy → JSON.** Replace `<bucket>`, `<account-id>` and `<distribution-id>`:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "ListSiteBucket",
-      "Effect": "Allow",
-      "Action": "s3:ListBucket",
-      "Resource": "arn:aws:s3:::<bucket>"
-    },
-    {
-      "Sid": "WriteSiteObjects",
-      "Effect": "Allow",
-      "Action": ["s3:PutObject", "s3:DeleteObject"],
-      "Resource": "arn:aws:s3:::<bucket>/*"
-    },
-    {
-      "Sid": "InvalidateSiteCache",
-      "Effect": "Allow",
-      "Action": ["cloudfront:CreateInvalidation", "cloudfront:GetInvalidation"],
-      "Resource": "arn:aws:cloudfront::<account-id>:distribution/<distribution-id>"
-    }
-  ]
-}
-```
-
-Name it `fritzpadilla-com-deploy`.
-
-### 8c. Deploy role
-
-**IAM → Roles → Create role → Web identity**
-
-- Identity provider: `token.actions.githubusercontent.com`. Audience: `sts.amazonaws.com`.
-- GitHub organization: `fritzp3`. Repository: `fritzpadilla.com`. Branch: `main`.
-- Permissions: attach `fritzpadilla-com-deploy`.
-- Role name: `fritzpadilla-com-deploy`.
-
-Then open the role's **Trust relationships** and confirm the policy restricts it to your repository's `main` branch. It should read like this:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:fritzp3/fritzpadilla.com:ref:refs/heads/main"
-        }
-      }
-    }
-  ]
-}
-```
-
-Record the role ARN. In Phase 7 it goes into the repository variables along with the bucket name, distribution ID and region.
-
-## 9. Optional: budget alert
-
-**Billing → Budgets → Create budget → Use a template → Monthly cost budget.** Set it to $5 with your email. It's a cheap safety net against surprises, such as a traffic spike or a misconfiguration.
-
-## 10. Email: hello@fritzpadilla.com
-
-The site publishes `hello@fritzpadilla.com` (nav button, Contact section, structured data). Route 53 only does DNS and can't receive mail, so a forwarding service receives it and passes it to your own inbox, such as Gmail. These steps use **ImprovMX** (free plan) as the example; any forwarding service works the same way, with its own record values.
+The site publishes `hello@fritzpadilla.com` (nav button, Contact section, structured data). Route 53 only does DNS and can't receive mail, so a forwarding service receives it and passes it to your own inbox, such as Gmail. These steps use **ImprovMX** (free plan) as the example; any forwarding service works the same way, with its own record values. Amplify doesn't touch these records.
 
 1. Sign up at improvmx.com, add the domain `fritzpadilla.com`, and create the alias `hello` → your inbox. (A catch-all `*` alias also works.)
 2. **Route 53 → Hosted zones → fritzpadilla.com → Create record**, using the exact values the provider's dashboard shows. For ImprovMX they are:
@@ -340,12 +168,14 @@ The site publishes `hello@fritzpadilla.com` (nav button, Contact section, struct
 
 ## Troubleshooting
 
-| Symptom                                              | Likely cause                                                                                                                                                                               |
-| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AccessDenied` XML page from CloudFront              | The bucket policy (5a) is missing or has the wrong distribution ARN, or the origin is the S3 _website_ endpoint instead of the REST endpoint.                                              |
-| Every page shows the 404 page                        | The CloudFront Function isn't **published** or isn't attached to the default behavior as **Viewer request**. `/` works through the default root object, but `/work/x/` needs the function. |
-| Certificate not offered in the distribution          | The certificate was requested outside `us-east-1`, isn't **Issued** yet, or doesn't cover both names.                                                                                      |
-| Social preview images download instead of displaying | They were uploaded without `image/png`. Deploy with `npm run deploy` (it sets the type), not a plain `aws s3 sync`.                                                                        |
-| Site still shows old content after a deploy          | The invalidation is still running (check **Invalidations** on the distribution). Otherwise it's your browser cache: hard-refresh.                                                          |
-| `www` doesn't redirect                               | The `www` alias records (step 7) are missing, or `www.fritzpadilla.com` isn't in the distribution's alternate domain names or the certificate.                                             |
-| Browser console shows "Refused to …" CSP errors      | Something new, such as analytics or an embed, needs the Content-Security-Policy (step 4) extended.                                                                                         |
+| Symptom                                               | Likely cause                                                                                                                                                        |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Build fails with a Next.js or adapter error           | The app is on the SSR platform. Do step 2, then redeploy.                                                                                                           |
+| Build fails on `npm ci` or with an engine error       | The build isn't using Node 22. Check that `amplify.yml` runs `nvm install` and `nvm use` before `npm ci`, and that the console has no build settings overriding it. |
+| Every unknown URL shows the home page with status 200 | Amplify's default `/<*>` → `/index.html` rule is still in place. Replace it as in step 3.                                                                           |
+| A page URL redirects in a loop                        | A rewrite rule is matching real pages. Only the two rules in step 3 should exist.                                                                                   |
+| Social preview images or favicons don't load          | An image path has no `.png` extension, so Amplify adds a trailing slash. Check the image URLs in the page source.                                                   |
+| `www` shows the site instead of redirecting           | The `www` rule is missing or below the 404 rule in step 3.                                                                                                          |
+| Apex redirects to `www`                               | The "Setup redirect" box in step 5 was left ticked. Edit the domain and untick it.                                                                                  |
+| Domain stuck on _SSL creation_ or _Domain activation_ | A conflicting record (step 5), or DNS still propagating. Check that `dig +short NS fritzpadilla.com` shows the hosted zone's four `awsdns` name servers.            |
+| Site still shows old content after a push             | The build is still running or failed: check **Hosting → Deployments**. Otherwise it's your browser cache: hard-refresh.                                             |

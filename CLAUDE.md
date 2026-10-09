@@ -2,7 +2,7 @@
 
 # fritzpadilla.com — Next.js portfolio
 
-Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully static export** and hosted on **AWS S3 + CloudFront**. The design reference is the mockup `design/Fritz-Padilla-Portfolio.html` (the "Broadsheet" design system). Treat it as read-only.
+Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully static export** and hosted on **AWS Amplify Hosting** (static, built from GitHub on every push to `main`). The design reference is the mockup `design/Fritz-Padilla-Portfolio.html` (the "Broadsheet" design system). Treat it as read-only.
 
 ## Stack
 
@@ -40,7 +40,6 @@ npm run lint
 npm run typecheck    # next typegen && tsc --noEmit (typegen creates PageProps<"/route"> types)
 npm run test:e2e     # Playwright against ./out (build first); serves on port 4173
 npm run format       # prettier --write (format:check verifies)
-npm run deploy       # S3_BUCKET=… CLOUDFRONT_DISTRIBUTION_ID=… (DRYRUN=1 to preview); see Deployment
 ```
 
 ## Project structure
@@ -72,15 +71,14 @@ src/
   styles/
     tokens.css              # Tailwind @theme: colors, ramps, radii, shadows, fonts; --gutter, --nav-h
     globals.css             # @import "tailwindcss"; base layer; the few component classes
-e2e/                        # Playwright specs (+ CloudFront Function unit tests)
-scripts/deploy.sh           # the only way to deploy (see Deployment)
+e2e/                        # Playwright specs
+amplify.yml                 # Amplify build settings: Node 22, npm ci, npm run build, publish out/
 assets/fonts/               # Source Serif 4 TTFs for OG images (SIL OFL, license included)
 public/                     # (to come) images/projects/<slug>/, images/portrait.webp, cv.pdf
 design/
   Fritz-Padilla-Portfolio.html  # original mockup, read-only reference
 docs/
-  aws-setup.md              # step-by-step console runbook for S3, ACM, CloudFront, Route 53, IAM
-  cloudfront-function.js    # viewer-request function source (pasted into the console)
+  aws-setup.md              # step-by-step console runbook for Amplify Hosting, the domain and email
 ```
 
 ## Routing (mockup → Next.js)
@@ -93,7 +91,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 | `#/about`, `#/work`, `#/contact` | `/#about`, `/#work`, `/#contact` (sections on the home page; `scroll-padding-top: var(--nav-h)` on `html` clears the sticky nav) |
 | `#/work/<slug>`                  | `/work/<slug>/`                                                                                                                  |
 
-- `trailingSlash: true`, so the export writes `work/<slug>/index.html`. This keeps S3 object keys predictable.
+- `trailingSlash: true`, so the export writes `work/<slug>/index.html`. Amplify serves `/work/x/` from `work/x/index.html` and adds the trailing slash to `/work/x` itself.
 - The "Next project" link wraps around to the first project.
 
 ## Design system rules (from the mockup)
@@ -120,7 +118,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - The owner supplies the real content: projects, screenshots, portrait, bio, and CV. Until it arrives, use clearly marked placeholders (`TODO:` strings, empty image slots with a neutral fill). Do not reuse the mockup's invented projects (Northline, Fieldnotes, and the others) and do not invent new copy or client names.
 - The hero, "at a glance", About and Contact copy in `src/content/site.ts` came from the mockup and is marked `TODO: confirm` until the owner approves or replaces it. Missing images render as a labelled placeholder panel (`HalftoneImage` with no `src`).
 - Contact is a `mailto:` link only. A contact form (from the revised mockup, `design/Fritz Padilla Portfolio-with-contact.html`) with a Lambda, DynamoDB and SES backend was built and then parked on the branch `contact-form`; see `PLAN.md` Phase 9.
-- `site.email` (hello@fritzpadilla.com, from the mockup) is used by the nav CTA, the Contact section and the JSON-LD, and is awaiting confirmation. Mail to it is forwarded to the owner's inbox by a forwarding service (runbook step 10). `site.profiles` stays empty until the real GitHub and LinkedIn URLs are known.
+- `site.email` (hello@fritzpadilla.com, from the mockup) is used by the nav CTA, the Contact section and the JSON-LD, and is awaiting confirmation. Mail to it is forwarded to the owner's inbox by a forwarding service (runbook step 8). `site.profiles` stays empty until the real GitHub and LinkedIn URLs are known.
 
 ## SEO and metadata
 
@@ -130,17 +128,16 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - **Every exported image must end in `.png`.** Don't use Next's `opengraph-image`/`icon`/`apple-icon` file conventions: they export without a file extension, and Amplify then adds a trailing slash and serves no image type. Pages link the images through metadata: `openGraphBase` in `lib/metadata.ts` carries the home card (case studies override `images` with `ogImage()`), and the layout's `icons` links the favicons.
 - The home page has JSON-LD `Person` data. `site.profiles` feeds `sameAs`; keep it empty until the real URLs are known.
 
-## Deployment (AWS)
+## Deployment (AWS Amplify)
 
-- **The runbook is `docs/aws-setup.md`.** Infrastructure is set up by hand in the console, with no IaC. Keep the runbook accurate: when a console setting changes, update it in the same commit.
-- **S3:** private bucket in `us-east-1`, Block Public Access on, ACLs disabled, versioning on, no website hosting. CloudFront reads it through **Origin Access Control**.
-- **CloudFront:**
-  - The viewer-request **CloudFront Function** (`docs/cloudfront-function.js`, runtime cloudfront-js-2.0) redirects `www` to the apex, maps `…/` to `…/index.html`, 301s extensionless page paths to the trailing-slash form, and passes Next's extensionless metadata images (`opengraph-image`, `icon`, `apple-icon`) through untouched. `e2e/cloudfront-function.spec.ts` unit-tests it. Any change to routes or metadata files must keep those tests passing, and the function must be re-pasted and re-published in the console.
-  - Cache policy CachingOptimized. The response headers policy sets HSTS, nosniff, `X-Frame-Options: DENY`, Referrer-Policy, and a CSP. The CSP needs `'unsafe-inline'` for scripts because Next's static export writes inline bootstrap scripts. It was verified against the build, so re-verify if third-party scripts are ever added.
-  - 403 and 404 map to `/404.html` with status 404. S3 returns 403 for missing keys under OAC.
-- **TLS and DNS:** the ACM certificate is in **us-east-1** and covers the apex and `www`. Route 53 has A and AAAA alias records for both.
-- **Deploy: `scripts/deploy.sh`** (`npm run deploy`, with `S3_BUCKET` and `CLOUDFRONT_DISTRIBUTION_ID` set; `DRYRUN=1` previews). Always use it rather than a plain `aws s3 sync`. It uploads in order: `_next/` as `public, max-age=31536000, immutable`, then other static files as `max-age=86400`, then the extensionless images explicitly as `image/png`, then pages, RSC `.txt` data, sitemap and robots as `public, max-age=0, s-maxage=31536000, must-revalidate`. It deletes stale files last and then invalidates `/*`. It must stay compatible with macOS bash 3.2 (for example, empty arrays under `set -u`).
-- **CI/CD:** GitHub Actions (`.github/workflows/`). Pull requests run lint, typecheck, build and e2e. A push to `main` runs the same deploy script, assuming the IAM role `fritzpadilla-com-deploy` through **GitHub OIDC** (runbook step 8). That role can only list, write and delete in the site bucket and invalidate the distribution. No long-lived AWS keys are stored anywhere. The bucket name, distribution ID, role ARN and region are GitHub repository variables.
+- **The runbook is `docs/aws-setup.md`.** Hosting is set up by hand in the console, with no IaC. Keep the runbook accurate: when a console setting changes, update it in the same commit.
+- **The repo is public: no AWS identifiers in it.** Never commit the account ID, the Amplify app ID, the `amplifyapp.com` address, a bucket name or any ARN. Use placeholders like `<app-id>`.
+- **Amplify Hosting** (us-west-2) is connected to `fritzp3/fritzpadilla.com`, branch `main` only, with no pull request previews. Every push to `main` builds with `amplify.yml` and publishes `out/`. There is no deploy script and no CI workflow: run lint, typecheck, build and e2e locally before pushing.
+  - The app must be on the static platform (**WEB**), not SSR compute: Amplify's SSR support stops at Next.js 15, and the site is a static export.
+  - Clean URLs need no rules: Amplify serves `…/` from `…/index.html` and adds the trailing slash to extensionless paths. That is also why every exported image must end in `.png` (see SEO and metadata).
+  - Rewrites and redirects (console, runbook step 3): `https://www.fritzpadilla.com` → `https://fritzpadilla.com` (301), then `/<*>` → `/404.html` (404) in place of Amplify's default SPA rule.
+  - No custom headers: the owner chose to skip security headers (HSTS, CSP and the rest) on this site.
+- **Domain:** `fritzpadilla.com` and `www` are connected in Amplify with an Amplify-managed certificate; Amplify writes the records into the Route 53 hosted zone. Until that cutover (runbook step 5), the domain redirects to FritzPadilla.me through an old S3 website bucket.
 - Never commit AWS credentials or `.env*` files.
 
 ## Working conventions

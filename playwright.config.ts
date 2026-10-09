@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Tests run against the static export in ./out (run `npm run build` first),
-// served locally — the same files that are deployed to S3.
+// served locally — the same files Amplify publishes.
 const PORT = 4173;
 
 export default defineConfig({

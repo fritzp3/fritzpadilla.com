@@ -1,6 +1,6 @@
 # Implementation plan — fritzpadilla.com
 
-Decisions: Next.js static export styled with Tailwind CSS v4, AWS set up by hand in the console (following a written runbook), DNS in Route 53, deploys through GitHub Actions with OIDC, real content supplied by Fritz. See `CLAUDE.md` for the rules each phase follows.
+Decisions: Next.js static export styled with Tailwind CSS v4, hosted on AWS Amplify Hosting set up by hand in the console (following a written runbook), built from GitHub on every push to `main`, DNS in Route 53, real content supplied by Fritz. See `CLAUDE.md` for the rules each phase follows.
 
 Each phase ends with something you can check before the next one starts. A phase is committed only after you approve it.
 
@@ -14,16 +14,16 @@ Each phase ends with something you can check before the next one starts. A phase
 | 3 — Home page          | Done                                                                                                 |
 | 4 — Case study pages   | Done                                                                                                 |
 | 5 — SEO and quality    | Done                                                                                                 |
-| 6 — AWS setup          | **In progress:** runbook, CloudFront Function and deploy script written, awaiting your console setup |
-| 7 — CI/CD              | Not started (repo is up: `fritzp3/fritzpadilla.com`)                                                 |
+| 6 — AWS setup          | **In progress:** switched to Amplify; runbook and `amplify.yml` written, awaiting your console setup |
+| 7 — CI/CD              | **Dropped:** Amplify deploys on push; checks run locally                                             |
 | 8 — Content and launch | Not started (needs your content)                                                                     |
-| 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 10)         |
+| 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 8)          |
 
 ## Phase 0 — Scaffold ✅
 
 1. `create-next-app` (TypeScript, App Router, ESLint, `src/` directory), Prettier, `.nvmrc` (Node 22) and `engines`.
 2. `next.config.ts`: `output: 'export'`, `trailingSlash: true`, `images.unoptimized: true`.
-3. npm scripts: `preview`, `typecheck` (runs `next typegen` first), `format`, `test:e2e`, `deploy`.
+3. npm scripts: `preview`, `typecheck` (runs `next typegen` first), `format`, `test:e2e` (and `deploy`, removed in Phase 6).
 4. `git init` and first commit, pushed to the public GitHub repo `fritzp3/fritzpadilla.com` (its initial README merged in).
 
 ## Phase 1 — Design foundation ✅
@@ -61,38 +61,37 @@ Each phase ends with something you can check before the next one starts. A phase
 ## Phase 5 — SEO and quality ✅
 
 1. Per-page metadata and canonical URLs, social cards rendered at build time (home and each project), "FP" favicons, `sitemap.xml`, `robots.txt`, and JSON-LD `Person`.
-2. Playwright suite (`npm run test:e2e`, 50 tests): every sitemap route, overflow at five widths, axe, navigation, the press driver, SEO files, and CloudFront Function unit tests.
+2. Playwright suite (`npm run test:e2e`, 50 tests): every sitemap route, overflow at five widths, axe, navigation, the press driver, SEO files, and CloudFront Function unit tests (removed with the switch to Amplify).
 3. Lighthouse: 95–100 in every category. The home page's accessibility score reads 95 only because of the decorative yellow headline plate, which is a false positive.
 
 ## Phase 6 — AWS setup (console, following `docs/aws-setup.md`) 🟡
 
+**Changed on 2026-10-09: S3 + CloudFront → Amplify Hosting.** The first plan (private S3 bucket, CloudFront with a viewer-request function and a security headers policy, `scripts/deploy.sh`, GitHub Actions with OIDC) was half set up, then undone at your request in favor of Amplify, which needs far less AWS plumbing. The bucket, certificate, function and headers policy were deleted; the distribution was never created.
+
 Written and tested:
 
-- the runbook, `docs/aws-setup.md`
-- `docs/cloudfront-function.js`, with unit tests
-- the Content-Security-Policy, verified against the build
-- `scripts/deploy.sh`, dry-run tested on bash 3.2
+- the runbook, `docs/aws-setup.md`, rewritten for Amplify
+- `amplify.yml`: Node 22 from `.nvmrc`, `npm ci`, `npm run build`, publish `out/`
+- social cards and icons exported as `.png` files (`og.png`, `work/<slug>/og.png`, `icons/fp-64.png`, `icons/fp-180.png`), because Amplify treats extensionless paths as pages
+- removed: `scripts/deploy.sh`, the `deploy` npm script, `docs/cloudfront-function.js` and its tests
+- decided: no custom (security) headers, no pull request previews
 
-You follow the runbook; I can check the result with read-only AWS CLI commands if you want.
+You follow the runbook:
 
-1. S3 bucket (private, Block Public Access on, versioning on).
-2. ACM certificate in **us-east-1** for the apex and `www`, validated through Route 53.
-3. CloudFront Function, published.
-4. Response headers policy (HSTS, CSP and others).
-5. CloudFront distribution: OAC and bucket policy, the function attached, 403/404 → `/404.html`.
-6. First deploy with `npm run deploy` and checks against the `cloudfront.net` address.
-7. Route 53 alias records. **This makes the site live**, so you may want to wait for Phase 8 content.
-8. IAM: GitHub OIDC provider and the deploy role, trusting `repo:fritzp3/fritzpadilla.com`.
+1. Create the Amplify app from GitHub (`main` only).
+2. Make sure the app is on the static platform (**WEB**), not SSR.
+3. Rewrites: `www` → apex (301), unknown paths → `/404.html` (404).
+4. First deploy and checks on the `amplifyapp.com` address.
+5. Custom domain: `fritzpadilla.com` and `www`. **This makes the site live** and replaces the redirect to FritzPadilla.me, so you may want to wait for Phase 8 content.
+6. Delete the old `fritzpadilla.com` redirect bucket.
+7. Optional budget alert.
+8. Email forwarding for hello@.
 
-**Check:** step 6's `curl` checks pass on the `cloudfront.net` address; after step 7, the same on https://fritzpadilla.com.
+**Check:** step 4's checks pass on the `amplifyapp.com` address; after step 5, the same on https://fritzpadilla.com.
 
-## Phase 7 — CI/CD
+## Phase 7 — CI/CD (dropped)
 
-1. ~~Create the GitHub repo and push~~ (done: `fritzp3/fritzpadilla.com`); finish runbook step 8 with that repo name.
-2. `ci.yml` on pull requests: install, lint, typecheck, build, Playwright (including the Chromium install).
-3. `deploy.yml` on push to `main`: build, then `scripts/deploy.sh` under the OIDC role. Repository variables hold the bucket, distribution ID, role ARN and region.
-
-**Check:** merging a trivial change deploys it live.
+Amplify builds and deploys every push to `main`, so there's no deploy workflow. You chose not to add GitHub Actions checks on pull requests: run `npm run lint`, `npm run typecheck`, `npm run build` and `npm run test:e2e` locally before pushing. Amplify's build is the only automated gate.
 
 ## Phase 8 — Content and launch
 
@@ -100,11 +99,11 @@ You follow the runbook; I can check the result with read-only AWS CLI commands i
 2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`).
 3. Confirm or replace every `TODO: confirm` string in `site.ts`: hero, "at a glance" facts, About, skills, contact, description, job title, and the email address.
 4. Delete the temporary `/specimen/` page.
-5. Final review against the mockup, e2e and Lighthouse runs, then point DNS (runbook step 7) if it isn't already.
+5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5) if it isn't already.
 
 ## Phase 9 — Contact form (parked)
 
-A form from the revised mockup (`design/Fritz Padilla Portfolio-with-contact.html`) was built, with a Lambda behind CloudFront that saved each message to DynamoDB and emailed it through SES. On 2026-10-06 you chose the simpler option for now: publish `hello@fritzpadilla.com` as a `mailto:` link, with mail forwarded to your inbox (runbook step 10). The full form work, including its runbook step and tests, is committed on the branch `contact-form`.
+A form from the revised mockup (`design/Fritz Padilla Portfolio-with-contact.html`) was built, with a Lambda behind CloudFront that saved each message to DynamoDB and emailed it through SES. On 2026-10-06 you chose the simpler option for now: publish `hello@fritzpadilla.com` as a `mailto:` link, with mail forwarded to your inbox (runbook step 8). The full form work, including its runbook step and tests, is committed on the branch `contact-form`.
 
 Ways to pick it up later:
 
@@ -116,4 +115,4 @@ Ways to pick it up later:
 
 - Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, a main project image, and up to 4 screenshots with captions.
 - Portrait, bio paragraphs, skills list, location, availability date, CV PDF, and GitHub and LinkedIn URLs.
-- Confirmation of the contact email, hello@fritzpadilla.com, and the inbox it should forward to (runbook step 10).
+- Confirmation of the contact email, hello@fritzpadilla.com, and the inbox it should forward to (runbook step 8).
