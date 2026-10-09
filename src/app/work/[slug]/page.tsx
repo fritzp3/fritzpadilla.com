@@ -5,6 +5,7 @@ import HalftoneImage from "@/components/HalftoneImage";
 import LeaderRow from "@/components/LeaderRow";
 import ProjectImage from "@/components/ProjectImage";
 import SectionLabel from "@/components/SectionLabel";
+import { settings } from "@/content/site";
 import { ogImage, openGraphBase } from "@/lib/metadata";
 import { getNextProject, getProject, getProjects } from "@/lib/projects";
 
@@ -152,7 +153,7 @@ export default async function CaseStudy(props: PageProps<"/work/[slug]">) {
       </section>
 
       {/* ── Screenshots ────────────────────────────────────────────── */}
-      {p.shots.length > 0 && (
+      {settings.showScreenshots && p.shots.length > 0 && (
         <section aria-labelledby="shots-heading" className={sectionPad}>
           <SectionLabel as="h2" id="shots-heading">
             Screenshots

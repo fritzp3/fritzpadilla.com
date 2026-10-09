@@ -25,6 +25,8 @@ export const settings = {
   showAvailability: true,
   /** Work section layout: numbered "index" rows or a thumbnail "grid". */
   workLayout: "index" as "index" | "grid",
+  /** Show the Screenshots section on case-study pages. */
+  showScreenshots: false,
 };
 
 export const navLinks = [

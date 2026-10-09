@@ -49,7 +49,7 @@ Each phase ends with something you can check before the next one starts. A phase
 ## Phase 4 — Case study pages ✅
 
 1. Content model: one Markdown file per project in `src/content/projects/` (frontmatter fields, `##` story sections), read and validated at build time by `lib/projects.ts`. (Changed from a TypeScript array at your request.)
-2. `work/[slug]/page.tsx`: header, facts grid, optional live and source buttons, project image (changed at your request from the four-plate `PressFigure` hero to a plain, uncropped `ProjectImage`), three-part story, tools, screenshots, and a next-project link that wraps around.
+2. `work/[slug]/page.tsx`: header, facts grid, optional live and source buttons, project image (changed at your request from the four-plate `PressFigure` hero to a plain, uncropped `ProjectImage`), three-part story, tools, screenshots (hidden for now by `settings.showScreenshots`), and a next-project link that wraps around.
 3. `not-found.tsx`, exported as `404.html`.
 
 ### Changes after Phase 4 (at your request)
