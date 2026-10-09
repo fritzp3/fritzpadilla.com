@@ -5,14 +5,11 @@
 export const site = {
   name: "Fritz Padilla",
   url: "https://fritzpadilla.com",
-  // TODO: confirm the public contact address.
   email: "hello@fritzpadilla.com",
   colophon: "Hand-built, set in Source Serif",
-  // TODO: confirm — search/social description, condensed from the hero intro.
   description:
     "Fritz Padilla, digital impresario: producing digital experiences and leading the teams, architecture and story behind them.",
-  // TODO: confirm — used as jobTitle in the structured data.
-  jobTitle: "Digital Impresario",
+  jobTitle: "Technical Leader and Software Engineer",
   // Public profile URLs for structured data (schema.org sameAs). Leave empty
   // until the real URLs are known; placeholders would mislead search engines.
   profiles: [] as string[],
@@ -53,9 +50,8 @@ export const about = {
   heading: "I lead the people and the platforms behind great digital experiences.",
   paragraphs: [
     "I started out hand-coding websites and grew into leading the teams that build them. Today I own digital experiences end to end: shaping technical strategy with stakeholders, choosing architecture that will last, guiding designers and engineers through delivery, and holding the line on performance, accessibility and quality.",
-    "I’m happiest where business goals, design and engineering meet — translating between them, mentoring developers, and making sure what ships is both well built and worth using.",
+    "I'm happiest where business goals, design and engineering meet. Translating business to technology, mentoring developers, and making sure what ships is both well built and worth using.",
   ],
-  // TODO: add the portrait at public/images/portrait.webp (4:5) and set src.
   portrait: {
     src: "/images/portrait-2.jpg" as string | undefined,
     alt: "Portrait of Fritz Padilla",
@@ -80,8 +76,8 @@ export const contact = {
   heading: "Have something that needs building?",
   body: "Tell me about the project, the timeline and who’s involved. I reply within two working days.",
   links: [
-    { label: "GitHub", href: "https://github.com/" }, // TODO: profile URL
-    { label: "LinkedIn", href: "https://www.linkedin.com/" }, // TODO: profile URL
+    { label: "GitHub", href: "https://github.com/fritzp3" }, // TODO: profile URL
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/fritz-padilla-iii/" }, // TODO: profile URL
     { label: "Download CV", href: "/cv.pdf" }, // TODO: add public/cv.pdf
   ],
 };
