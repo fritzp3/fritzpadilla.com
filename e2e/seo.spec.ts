@@ -51,9 +51,3 @@ test("pages link the .png social card and icons", async ({ page }) => {
     `https://fritzpadilla.com${work}og.png`,
   );
 });
-
-test("the specimen page is not indexable", () => {
-  const html = readFileSync("out/specimen/index.html", "utf8");
-  expect(html).toMatch(/<meta name="robots" content="noindex/);
-  expect(readFileSync("out/sitemap.xml", "utf8")).not.toContain("/specimen");
-});

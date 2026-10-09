@@ -55,7 +55,6 @@ src/
     icons/fp-64.png/, icons/fp-180.png/  # "FP" monogram favicon and Apple touch icon (route handlers)
     sitemap.ts, robots.ts   # static metadata routes (force-static)
     not-found.tsx           # exported as 404.html
-    specimen/page.tsx       # TEMPORARY design specimen (noindex); delete before launch
   components/               # Nav, ColorBar, Footer, PlateHeadline, Illustration, SectionLabel,
                             # LeaderRow, HalftoneImage, ProjectImage, ProjectIndex, ProjectGrid,
                             # PrintPlates (SVG filter defs), PressDriver (client),
@@ -101,7 +100,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - **Layout:** content max width 1200px, side gutter `clamp(20px, 5vw, 72px)`. The nav is `sticky` (not fixed, so it can never cover content) with the multi-color bar along its bottom edge. Below 640px it becomes two rows: name and CTA, then the links. `--nav-h` in `tokens.css` must match its measured height (108px on phones, 74px from 640px), because `scroll-padding-top` uses it to land anchors below the nav. The page must not scroll horizontally at 320px.
 - **Signature treatments.** Each one gets its own component:
   - `PlateHeadline`: the `.cmyk-head` misregistered C/M/Y text plates on the hero H1. It can be switched off with a flag, which renders plain text.
-  - `.cmyk .print`: the four-plate separation via the compound `#sep-all` filter rendered once in the layout (`PrintPlates`, which also defines the single-plate `#sep-c/m/y/k`). The mockup put it on a case-study hero image, but at the owner's request case studies have no hero: the project image (`ProjectImage`, frontmatter `image`) shows the whole image, unfiltered and uncropped, at its natural aspect and never wider than its own pixels. The treatment is currently only shown on `/specimen/`.
+  - `.cmyk .print`: the four-plate separation via the compound `#sep-all` filter rendered once in the layout (`PrintPlates`, which also defines the single-plate `#sep-c/m/y/k`). The mockup put it on a case-study hero image, but at the owner's request case studies have no hero: the project image (`ProjectImage`, frontmatter `image`) shows the whole image, unfiltered and uncropped, at its natural aspect and never wider than its own pixels. No page uses the treatment right now; the `/specimen/` page that showed it was removed before launch.
   - `.halftone`: the dot-screen overlay on thumbnails, portrait, and screenshots.
   - `Illustration`: the hand-drawn robot and robot dog, converted path-for-path from the mockup SVG, roughened by the `paisley-paint` turbulence filter.
   - Leader-dot rows (the skills and case-study metadata) and the double-rule "at a glance" strip.
@@ -123,7 +122,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 ## SEO and metadata
 
 - `metadataBase` is `https://fritzpadilla.com`. Every page sets a canonical URL. A page's `openGraph` **replaces** the layout's, so always spread `openGraphBase` from `lib/metadata.ts` into it.
-- `sitemap.ts` and `robots.ts` need `dynamic = "force-static"` for the export. The specimen page is `noindex` and left out of the sitemap.
+- `sitemap.ts` and `robots.ts` need `dynamic = "force-static"` for the export.
 - Social cards (`og.png/route.tsx` for the home page, `work/[slug]/og.png/route.tsx` for each project) and the icons (`icons/fp-64.png`, `icons/fp-180.png`) are static route handlers that render at build time via `lib/og.tsx`. It reads colors from `tokens.css`, because Satori can't use CSS variables, and uses the TTFs in `assets/fonts/` (SIL OFL; the license is alongside).
 - **Every exported image must end in `.png`.** Don't use Next's `opengraph-image`/`icon`/`apple-icon` file conventions: they export without a file extension, and Amplify then adds a trailing slash and serves no image type. Pages link the images through metadata: `openGraphBase` in `lib/metadata.ts` carries the home card (case studies override `images` with `ogImage()`), and the layout's `icons` links the favicons.
 - The home page has JSON-LD `Person` data. `site.profiles` feeds `sameAs`; keep it empty until the real URLs are known.

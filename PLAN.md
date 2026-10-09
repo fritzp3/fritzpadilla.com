@@ -55,7 +55,7 @@ Each phase ends with something you can check before the next one starts. A phase
 ### Changes after Phase 4 (at your request)
 
 - **Projects as Markdown.** `src/content/projects.ts` was replaced by one `.md` file per project in `src/content/projects/`. The filename is the slug, the frontmatter holds the fields (`order` sets display order), and each `## Heading` in the body is a story section, rendered with `marked` (paragraphs, lists, emphasis and links; external links open in a new tab). `lib/projects.ts` reads and validates the files at build time and stops the build with the file and field name when something is wrong. The Work section (index and grid layouts) and the case-study pages both read from it.
-- **No hero on case studies.** The four-plate `PressFigure` hero (blurred plates, dot screen, 16:10 crop) was replaced by `ProjectImage`: the whole image, unfiltered and uncropped, at its natural shape and never wider than its own pixels. The frontmatter field is `image` (a leftover `hero` fails the build with a rename hint). The four-plate treatment remains on `/specimen/`, where its e2e hover test now runs.
+- **No hero on case studies.** The four-plate `PressFigure` hero (blurred plates, dot screen, 16:10 crop) was replaced by `ProjectImage`: the whole image, unfiltered and uncropped, at its natural shape and never wider than its own pixels. The frontmatter field is `image` (a leftover `hero` fails the build with a rename hint). The four-plate treatment stayed on `/specimen/` until that page (and its hover test) was removed before launch.
 - The missing-image placeholder label went from `text-ink/55` to `text-ink/70`, because axe flagged its contrast once the print filter no longer hid it.
 
 ## Phase 5 — SEO and quality ✅
@@ -98,7 +98,7 @@ Amplify builds and deploys every push to `main`, so there's no deploy workflow. 
 1. Replace the placeholder projects (`src/content/projects/*.md`) with yours. Screenshots go in as WebP at 2x under `public/images/projects/<slug>/`.
 2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`). The Contact section's links are hidden by `settings.showContactLinks` until the CV is ready; turn it on then.
 3. Confirm or replace every `TODO: confirm` string in `site.ts`: hero, "at a glance" facts, About, skills, contact, description, job title, and the email address.
-4. Delete the temporary `/specimen/` page.
+4. ~~Delete the temporary `/specimen/` page.~~ Done.
 5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5) if it isn't already.
 
 ## Phase 9 — Contact form (parked)
