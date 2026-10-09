@@ -1,9 +1,10 @@
 // Projects are Markdown files in src/content/projects/, read at build time.
-// The filename is the slug (project-1.md → /work/project-1/). YAML
-// frontmatter holds the fields below; each `## Heading` in the body starts a
-// story section. `order` sets display order. Derived fields (number, href,
-// top tools) are computed here, not stored. A malformed file fails the build
-// with a message naming the file and field.
+// The filename is the slug (cancer-support-community.md →
+// /work/cancer-support-community/). YAML frontmatter holds the fields below;
+// each `## Heading` in the body starts a story section. `order` sets display
+// order. Derived fields (number, href, top tools) are computed here, not
+// stored. A malformed file fails the build with a message naming the file and
+// field.
 
 import fs from "node:fs";
 import path from "node:path";
