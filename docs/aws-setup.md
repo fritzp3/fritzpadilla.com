@@ -146,7 +146,7 @@ Once step 5 is **Available** and checked, the old `fritzpadilla.com` S3 bucket (
 
 ## 7. Optional: budget alert
 
-**Billing → Budgets → Create budget → Use a template → Monthly cost budget.** Set it to $5 with your email. It's a cheap safety net against surprises, such as a traffic spike or a runaway build.
+**Billing → Budgets → Create budget → Use a template → Monthly cost budget.** Set it to $5 with your email, or, since a budget covers the whole AWS account, a little above the account's usual monthly bill if other projects share it. It's a cheap safety net against surprises, such as a traffic spike or a runaway build.
 
 ## 8. Email: hello@fritzpadilla.com
 

@@ -136,7 +136,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
   - Clean URLs need no rules: Amplify serves `…/` from `…/index.html` and adds the trailing slash to extensionless paths. That is also why every exported image must end in `.png` (see SEO and metadata).
   - Rewrites and redirects (console, runbook step 3): `https://www.fritzpadilla.com` → `https://fritzpadilla.com` (301), then `/<*>` → `/404.html` with status `404-200` ("404 (Rewrite)", which serves the page with a 404 status; plain `404` is a 302 redirect) in place of Amplify's default SPA rule.
   - No custom headers: the owner chose to skip security headers (HSTS, CSP and the rest) on this site.
-- **Domain:** `fritzpadilla.com` and `www` are connected in Amplify with an Amplify-managed certificate; Amplify writes the records into the Route 53 hosted zone. Until that cutover (runbook step 5), the domain redirects to FritzPadilla.me through an old S3 website bucket.
+- **Domain:** `fritzpadilla.com` and `www` are connected in Amplify with an Amplify-managed certificate; Amplify writes the records into the Route 53 hosted zone. The old S3 bucket that redirected the domain to FritzPadilla.me was deleted after the cutover.
 - Never commit AWS credentials or `.env*` files.
 
 ## Working conventions

@@ -14,7 +14,7 @@ Each phase ends with something you can check before the next one starts. A phase
 | 3 — Home page          | Done                                                                                        |
 | 4 — Case study pages   | Done                                                                                        |
 | 5 — SEO and quality    | Done                                                                                        |
-| 6 — AWS setup          | **Live on Amplify;** runbook steps 1–5 done, cleanup (6–8) left                             |
+| 6 — AWS setup          | Done: live on Amplify, every runbook step complete                                          |
 | 7 — CI/CD              | **Dropped:** Amplify deploys on push; checks run locally                                    |
 | 8 — Content and launch | Done: real content in, fritzpadilla.com live                                                |
 | 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 8) |
@@ -64,7 +64,7 @@ Each phase ends with something you can check before the next one starts. A phase
 2. Playwright suite (`npm run test:e2e`, 50 tests): every sitemap route, overflow at five widths, axe, navigation, the press driver, SEO files, and CloudFront Function unit tests (removed with the switch to Amplify).
 3. Lighthouse: 95–100 in every category. The home page's accessibility score reads 95 only because of the decorative yellow headline plate, which is a false positive.
 
-## Phase 6 — AWS setup (console, following `docs/aws-setup.md`) 🟡 live
+## Phase 6 — AWS setup (console, following `docs/aws-setup.md`) ✅
 
 **Changed on 2026-10-09: S3 + CloudFront → Amplify Hosting.** The first plan (private S3 bucket, CloudFront with a viewer-request function and a security headers policy, `scripts/deploy.sh`, GitHub Actions with OIDC) was half set up, then undone at your request in favor of Amplify, which needs far less AWS plumbing. The bucket, certificate, function and headers policy were deleted; the distribution was never created.
 
@@ -83,9 +83,9 @@ You follow the runbook:
 3. ~~Rewrites: `www` → apex (301), unknown paths → `/404.html`.~~ Done. The 404 rule needs status `404-200` (404 rewrite); plain `404` answered with a 302 to `/404.html`.
 4. ~~First deploy and checks on the `amplifyapp.com` address.~~ Done.
 5. ~~Custom domain: `fritzpadilla.com` and `www`.~~ Done: **the site is live**, replacing the redirect to FritzPadilla.me. Amplify-managed certificate.
-6. Delete the old `fritzpadilla.com` redirect bucket.
-7. Optional budget alert.
-8. Email forwarding for hello@: the ImprovMX MX records are in Route 53; send a test message to confirm.
+6. ~~Delete the old `fritzpadilla.com` redirect bucket.~~ Done.
+7. ~~Optional budget alert.~~ Done. It covers the whole AWS account, so its amount sits above the account's usual bill, not the runbook's $5.
+8. ~~Email forwarding for hello@ (ImprovMX).~~ Done and tested.
 
 **Check:** step 4's checks pass on the `amplifyapp.com` address; after step 5, the same on https://fritzpadilla.com.
 
