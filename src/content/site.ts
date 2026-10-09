@@ -37,9 +37,9 @@ export const navLinks = [
 
 // TODO: confirm — hero copy from the mockup.
 export const hero = {
-  headline: ["Websites built", "to be read."],
+  headline: ["Systems built", "for humans."],
   intro:
-    "I’m Fritz, a digital impresario. I produce digital experiences and put them in front of people — from the Flash era through HTML5 to the platforms and backends behind today’s web — leading the teams, the architecture and the story from first idea to opening night.",
+    "Every great product has a moment when chaos becomes clarity. Standing in the middle of the swarm. Sketching the architecture. Rallying the team. Translating between the brain and the code until everyone can see the same destination. And then the real work begins.",
 };
 
 // TODO: confirm — every fact in the "at a glance" strip.
