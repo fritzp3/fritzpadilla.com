@@ -7,8 +7,8 @@ year: 2018
 summary: "The Cancer Support Community non-profit organization uses Advanced Web Components to build custom data-driven front-end components for its cancer patient social media platform. Web components were built in React.JS, jQuery, PHP, and Node.js."
 role: Lead Technical Architect
 client: MyLifeLine.org (Cancer Support Community)
-duration: TODO
-team: TODO
+duration: 1 year
+team: Digital
 tools: [React.JS, jQuery, PHP, Node.js]
 # Optional; the buttons only appear when set.
 # live: https://example.com

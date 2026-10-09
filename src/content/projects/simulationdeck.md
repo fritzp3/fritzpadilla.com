@@ -3,13 +3,13 @@
 order: 3 # display order on the home page (lowest first)
 title: SimulationDeck Response Training Simulation Platform
 type: Web Development and Strategy
-year: 2017
+year: 2016
 summary: "The Denver based emergency management training experts of Nusura approached Advanced Web Components to build their flagship digital simulation tool, SimulationDeck. An enterprise web application was created to provide simulated public response to potential real world events and disasters."
-role: TODO
+role: Principle Software Engineer
 client: Nusura, Inc.
-duration: TODO
-team: TODO
-tools: []
+duration: 7 years
+team: Development
+tools: [Drupal, PHP, HTML5, Javascript, CSS, Bootstrap, AWS]
 # Optional; the buttons only appear when set.
 # live: https://example.com
 # repo: https://github.com/…

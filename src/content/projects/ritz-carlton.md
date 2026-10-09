@@ -3,12 +3,12 @@
 order: 5 # display order on the home page (lowest first)
 title: Ritz-Carlton Destination Club Digital Signage
 type: Multimedia Development
-year: TODO
+year: 2008
 summary: "Digital sign developed for Ritz-Carlton Destination Club while under contract with Four Winds Interactive. Designed as a touch-screen application allowing the user to navigate the application similar to an iPhone application."
-role: TODO
+role: Software Engineer
 client: Ritz-Carlton (Marriott)
-duration: TODO
-team: TODO
+duration: 1 year
+team: Special Projects
 tools: [Flash, ActionScript, HTML5, Javascript, CSS, C#]
 # Optional; the buttons only appear when set.
 # live: https://example.com
