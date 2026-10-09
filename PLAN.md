@@ -6,18 +6,18 @@ Each phase ends with something you can check before the next one starts. A phase
 
 ## Status
 
-| Phase                  | State                                                                                                |
-| ---------------------- | ---------------------------------------------------------------------------------------------------- |
-| 0 — Scaffold           | Done                                                                                                 |
-| 1 — Design foundation  | Done                                                                                                 |
-| 2 — Layout shell       | Done                                                                                                 |
-| 3 — Home page          | Done                                                                                                 |
-| 4 — Case study pages   | Done                                                                                                 |
-| 5 — SEO and quality    | Done                                                                                                 |
-| 6 — AWS setup          | **In progress:** switched to Amplify; runbook and `amplify.yml` written, awaiting your console setup |
-| 7 — CI/CD              | **Dropped:** Amplify deploys on push; checks run locally                                             |
-| 8 — Content and launch | Not started (needs your content)                                                                     |
-| 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 8)          |
+| Phase                  | State                                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| 0 — Scaffold           | Done                                                                                        |
+| 1 — Design foundation  | Done                                                                                        |
+| 2 — Layout shell       | Done                                                                                        |
+| 3 — Home page          | Done                                                                                        |
+| 4 — Case study pages   | Done                                                                                        |
+| 5 — SEO and quality    | Done                                                                                        |
+| 6 — AWS setup          | **Live on Amplify;** runbook steps 1–5 done, cleanup (6–8) left                             |
+| 7 — CI/CD              | **Dropped:** Amplify deploys on push; checks run locally                                    |
+| 8 — Content and launch | Done: real content in, fritzpadilla.com live                                                |
+| 9 — Contact form       | **Parked** on branch `contact-form`; contact stays a hello@ `mailto:` link (runbook step 8) |
 
 ## Phase 0 — Scaffold ✅
 
@@ -64,7 +64,7 @@ Each phase ends with something you can check before the next one starts. A phase
 2. Playwright suite (`npm run test:e2e`, 50 tests): every sitemap route, overflow at five widths, axe, navigation, the press driver, SEO files, and CloudFront Function unit tests (removed with the switch to Amplify).
 3. Lighthouse: 95–100 in every category. The home page's accessibility score reads 95 only because of the decorative yellow headline plate, which is a false positive.
 
-## Phase 6 — AWS setup (console, following `docs/aws-setup.md`) 🟡
+## Phase 6 — AWS setup (console, following `docs/aws-setup.md`) 🟡 live
 
 **Changed on 2026-10-09: S3 + CloudFront → Amplify Hosting.** The first plan (private S3 bucket, CloudFront with a viewer-request function and a security headers policy, `scripts/deploy.sh`, GitHub Actions with OIDC) was half set up, then undone at your request in favor of Amplify, which needs far less AWS plumbing. The bucket, certificate, function and headers policy were deleted; the distribution was never created.
 
@@ -78,14 +78,14 @@ Written and tested:
 
 You follow the runbook:
 
-1. Create the Amplify app from GitHub (`main` only).
-2. Make sure the app is on the static platform (**WEB**), not SSR.
-3. Rewrites: `www` → apex (301), unknown paths → `/404.html` (404).
-4. First deploy and checks on the `amplifyapp.com` address.
-5. Custom domain: `fritzpadilla.com` and `www`. **This makes the site live** and replaces the redirect to FritzPadilla.me, so you may want to wait for Phase 8 content.
+1. ~~Create the Amplify app from GitHub (`main` only).~~ Done.
+2. ~~Make sure the app is on the static platform (**WEB**), not SSR.~~ Done. The first deploy failed (`required-server-files.json`) until both the app (`update-app --platform WEB`) and the branch (`update-branch --framework "Web"`) were switched.
+3. ~~Rewrites: `www` → apex (301), unknown paths → `/404.html`.~~ Done. The 404 rule needs status `404-200` (404 rewrite); plain `404` answered with a 302 to `/404.html`.
+4. ~~First deploy and checks on the `amplifyapp.com` address.~~ Done.
+5. ~~Custom domain: `fritzpadilla.com` and `www`.~~ Done: **the site is live**, replacing the redirect to FritzPadilla.me. Amplify-managed certificate.
 6. Delete the old `fritzpadilla.com` redirect bucket.
 7. Optional budget alert.
-8. Email forwarding for hello@.
+8. Email forwarding for hello@: the ImprovMX MX records are in Route 53; send a test message to confirm.
 
 **Check:** step 4's checks pass on the `amplifyapp.com` address; after step 5, the same on https://fritzpadilla.com.
 
@@ -93,13 +93,13 @@ You follow the runbook:
 
 Amplify builds and deploys every push to `main`, so there's no deploy workflow. You chose not to add GitHub Actions checks on pull requests: run `npm run lint`, `npm run typecheck`, `npm run build` and `npm run test:e2e` locally before pushing. Amplify's build is the only automated gate.
 
-## Phase 8 — Content and launch
+## Phase 8 — Content and launch ✅
 
 1. Replace the placeholder projects (`src/content/projects/*.md`) with yours. Screenshots go in as WebP at 2x under `public/images/projects/<slug>/`.
 2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`). The Contact section's links are hidden by `settings.showContactLinks` until the CV is ready; turn it on then.
 3. Confirm or replace every `TODO: confirm` string in `site.ts`: hero, "at a glance" facts, About, skills, contact, description, job title, and the email address.
 4. ~~Delete the temporary `/specimen/` page.~~ Done.
-5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5) if it isn't already.
+5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5). Done: fritzpadilla.com is live.
 
 ## Phase 9 — Contact form (parked)
 

@@ -48,12 +48,15 @@ This guide sets up hosting for the static site with **AWS Amplify Hosting**, con
 
 Amplify detects Next.js and may set the app up for its server (SSR) hosting, which this site doesn't use and which doesn't support Next.js 16. The app must use the static platform, **WEB**.
 
-1. Open the app's **App settings → General settings**. If **Platform** (or "Framework") says **Web** or **Static**, skip to step 3. If it says **Web compute**, **SSR** or **Next.js - SSR**, continue.
-2. In CloudShell (the terminal icon in the console's top bar) or a local terminal with admin credentials, run:
+1. Open the app's **App settings → General settings**. If **Platform** (or "Framework") says **Web** or **Static**, skip to step 3. If it says **Web compute**, **SSR** or **Next.js - SSR**, continue. The first build failing with `Can't find required-server-files.json in build output directory` means the same thing.
+2. In CloudShell (the terminal icon in the console's top bar) or a local terminal with admin credentials, switch both the app and the `main` branch. The branch keeps its own framework setting, and the deploy still fails if only the app is changed.
 
    ```bash
    aws amplify update-app --region us-west-2 --app-id <app-id> --platform WEB
+   aws amplify update-branch --region us-west-2 --app-id <app-id> --branch-name main --framework "Web"
    ```
+
+   The output should show `"platform": "WEB"` and `"framework": "Web"`.
 
 3. **Hosting → Deployments → Redeploy this version** (or push any commit) so the build runs again on the static platform.
 
@@ -73,7 +76,7 @@ Amplify detects Next.js and may set the app up for its server (SSR) hosting, whi
   },
   {
     "source": "/<*>",
-    "status": "404",
+    "status": "404-200",
     "target": "/404.html",
     "condition": null
   }
@@ -81,7 +84,7 @@ Amplify detects Next.js and may set the app up for its server (SSR) hosting, whi
 ```
 
 - The first sends `www` to the apex domain; Amplify appends the path and query string. It does nothing until step 5 connects the domain.
-- The second replaces Amplify's default `/<*>` → `/index.html` rule. A 404 rule only applies when no file matches, so real pages and images are unaffected; unknown paths get the site's 404 page with status 404.
+- The second replaces Amplify's default `/<*>` → `/index.html` rule. Its status must be `404-200`, shown in the table view as **404 (Rewrite)**: it serves `404.html` at the requested URL with status 404. A plain `404` is a **404 (Redirect)**, which answers with a 302 to `/404.html` instead. A 404 rule only applies when no file matches, so real pages and images are unaffected; unknown paths get the site's 404 page with status 404.
 
 **Save.** Clean URLs need no rules: Amplify serves `/work/x/` from `/work/x/index.html` and adds the trailing slash to `/work/x` itself, which matches the site's `trailingSlash: true`.
 
@@ -170,8 +173,9 @@ The site publishes `hello@fritzpadilla.com` (nav button, Contact section, struct
 
 | Symptom                                               | Likely cause                                                                                                                                                        |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Build fails with a Next.js or adapter error           | The app is on the SSR platform. Do step 2, then redeploy.                                                                                                           |
+| Deploy fails: `Can't find required-server-files.json` | The app or branch is on the SSR platform. Do step 2, then redeploy.                                                                                                 |
 | Build fails on `npm ci` or with an engine error       | The build isn't using Node 22. Check that `amplify.yml` runs `nvm install` and `nvm use` before `npm ci`, and that the console has no build settings overriding it. |
+| Unknown URLs redirect (302) to `/404.html`            | The 404 rule's status is `404` (redirect). Change it to `404-200` (**404 (Rewrite)**) as in step 3.                                                                 |
 | Every unknown URL shows the home page with status 200 | Amplify's default `/<*>` → `/index.html` rule is still in place. Replace it as in step 3.                                                                           |
 | A page URL redirects in a loop                        | A rewrite rule is matching real pages. Only the two rules in step 3 should exist.                                                                                   |
 | Social preview images or favicons don't load          | An image path has no `.png` extension, so Amplify adds a trailing slash. Check the image URLs in the page source.                                                   |
