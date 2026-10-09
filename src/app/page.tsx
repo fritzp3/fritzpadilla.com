@@ -157,13 +157,15 @@ export default function Home() {
         <p className="mt-7 mb-0 text-[clamp(22px,2.6vw,30px)]">
           <a href={`mailto:${site.email}`}>{site.email}</a>
         </p>
-        <ul className="m-0 mt-5 flex list-none flex-wrap gap-x-7 gap-y-2 p-0 text-base">
-          {contact.links.map((l) => (
-            <li key={l.label}>
-              <a href={l.href}>{l.label}</a>
-            </li>
-          ))}
-        </ul>
+        {settings.showContactLinks && (
+          <ul className="m-0 mt-5 flex list-none flex-wrap gap-x-7 gap-y-2 p-0 text-base">
+            {contact.links.map((l) => (
+              <li key={l.label}>
+                <a href={l.href}>{l.label}</a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

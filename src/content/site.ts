@@ -24,6 +24,8 @@ export const settings = {
   workLayout: "index" as "index" | "grid",
   /** Show the Screenshots section on case-study pages. */
   showScreenshots: false,
+  /** Show the GitHub, LinkedIn and CV links in the Contact section. */
+  showContactLinks: false,
 };
 
 export const navLinks = [

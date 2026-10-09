@@ -96,7 +96,7 @@ Amplify builds and deploys every push to `main`, so there's no deploy workflow. 
 ## Phase 8 — Content and launch
 
 1. Replace the placeholder projects (`src/content/projects/*.md`) with yours. Screenshots go in as WebP at 2x under `public/images/projects/<slug>/`.
-2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`).
+2. Add the portrait, CV (`public/cv.pdf`), and the GitHub and LinkedIn URLs (`contact.links` and `site.profiles`). The Contact section's links are hidden by `settings.showContactLinks` until the CV is ready; turn it on then.
 3. Confirm or replace every `TODO: confirm` string in `site.ts`: hero, "at a glance" facts, About, skills, contact, description, job title, and the email address.
 4. Delete the temporary `/specimen/` page.
 5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5) if it isn't already.
