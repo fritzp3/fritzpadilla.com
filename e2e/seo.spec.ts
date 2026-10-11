@@ -65,3 +65,39 @@ test("Google Analytics is configured but stays silent off the live domain", asyn
     .toContain("G-44XPSN74LN");
   expect(gaRequests).toEqual([]);
 });
+
+test("link clicks queue nav_click and contact_email_click events", async ({ page }) => {
+  await page.goto("/");
+  // Keep the mailto: click from leaving the page.
+  await page.evaluate(() =>
+    document.addEventListener("click", (e) => {
+      if ((e.target as Element).closest('a[href^="mailto:"]')) e.preventDefault();
+    }),
+  );
+  const events = () =>
+    page.evaluate(() =>
+      ((window as { dataLayer?: IArguments[] }).dataLayer ?? [])
+        .map((args) => Array.from(args))
+        .filter((args) => args[0] === "event"),
+    );
+  await page.locator("nav").getByRole("link", { name: "About", exact: true }).click();
+  await page.getByRole("link", { name: "See the work" }).click();
+  await page.locator("main").getByRole("link", { name: /@/ }).click();
+  await expect.poll(events).toEqual([
+    ["event", "nav_click", { link_text: "About", link_url: "/#about", link_location: "nav" }],
+    [
+      "event",
+      "nav_click",
+      { link_text: "See the work", link_url: "/#work", link_location: "page" },
+    ],
+    [
+      "event",
+      "contact_email_click",
+      {
+        link_text: "hello@fritzpadilla.com",
+        link_url: "mailto:hello@fritzpadilla.com",
+        link_location: "page",
+      },
+    ],
+  ]);
+});

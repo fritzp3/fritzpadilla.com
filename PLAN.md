@@ -104,6 +104,7 @@ Amplify builds and deploys every push to `main`, so there's no deploy workflow. 
 ### After launch
 
 - 2026-10-11: Google Analytics 4 (`G-44XPSN74LN`) added through `components/Analytics.tsx`. It loads only on fritzpadilla.com. No consent banner, since the owner is US-based.
+- 2026-10-11: Click events added: `nav_click` (About, Work, Contact, the logo, the hero buttons, "All work") and `contact_email_click` (both email links). In GA, mark `contact_email_click` as a key event and register `link_text` and `link_location` as event-scoped custom dimensions.
 - 2026-10-11: "At a glance" location corrected from the mockup's "Based in Lisbon" to "Based in Denver, Colorado". The strip's other facts are still `TODO: confirm`.
 
 ## Phase 9 — Contact form (parked)
