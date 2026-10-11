@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Source_Serif_4 } from "next/font/google";
+import Analytics from "@/components/Analytics";
 import Footer from "@/components/Footer";
 import Nav from "@/components/Nav";
 import PressDriver from "@/components/PressDriver";
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Footer />
         <PrintPlates />
         <PressDriver />
+        <Analytics />
       </body>
     </html>
   );

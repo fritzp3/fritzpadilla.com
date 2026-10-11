@@ -13,6 +13,9 @@ export const site = {
   // Public profile URLs for structured data (schema.org sameAs). Leave empty
   // until the real URLs are known; placeholders would mislead search engines.
   profiles: [] as string[],
+  // Google Analytics 4 measurement ID. gtag.js loads only on the live domain,
+  // so local previews and e2e runs don't count as visits.
+  gaId: "G-44XPSN74LN",
 } as const;
 
 export const settings = {
@@ -41,9 +44,10 @@ export const hero = {
     "Every great product has a moment when chaos becomes clarity. Standing in the middle of the swarm. Sketching the architecture. Rallying the team. Translating between the brain and the code until everyone can see the same destination. And then the real work begins.",
 };
 
-// TODO: confirm — every fact in the "at a glance" strip.
+// TODO: confirm — every fact in the "at a glance" strip except the location
+// (confirmed: Denver, Colorado).
 export const glance = {
-  items: ["Based in Lisbon", "9 years shipping", "Digital Impresario"],
+  items: ["Based in Denver, Colorado", "9 years shipping", "Digital Impresario"],
   availability: "Available from November 2026",
 };
 

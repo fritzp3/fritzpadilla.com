@@ -51,3 +51,17 @@ test("pages link the .png social card and icons", async ({ page }) => {
     `https://fritzpadilla.com${work}og.png`,
   );
 });
+
+test("Google Analytics is configured but stays silent off the live domain", async ({ page }) => {
+  const gaRequests: string[] = [];
+  page.on("request", (req) => {
+    if (/googletagmanager\.com|google-analytics\.com/.test(req.url())) gaRequests.push(req.url());
+  });
+  await page.goto("/");
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.stringify((window as { dataLayer?: unknown[] }).dataLayer)),
+    )
+    .toContain("G-44XPSN74LN");
+  expect(gaRequests).toEqual([]);
+});

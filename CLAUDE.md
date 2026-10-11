@@ -27,7 +27,7 @@ Personal portfolio site for Fritz Padilla. It is built with Next.js as a **fully
   - `/bin/bash` is 3.2. Shell scripts must work on it (for example, an empty array under `set -u` needs `${arr[@]+"${arr[@]}"}`), as well as on bash 5 in CI.
   - `shellcheck` isn't installed.
 - **Lint and format:** ESLint (`next/core-web-vitals`, `next/typescript`) and Prettier.
-- **Testing:** Playwright (`e2e/`) against the built `out/` folder, served on port 4173. It covers every sitemap route (status, single h1, title, canonical, og:image), horizontal overflow at 320–1600px, axe WCAG A/AA at 375px and 1280px, nav anchors vs `--nav-h`, next-project cycling, the skip link, the press driver (including reduced motion), JSON-LD, robots, sitemap, and preview images. Routes are read from `out/sitemap.xml`, so new projects are tested automatically.
+- **Testing:** Playwright (`e2e/`) against the built `out/` folder, served on port 4173. It covers every sitemap route (status, single h1, title, canonical, og:image), horizontal overflow at 320–1600px, axe WCAG A/AA at 375px and 1280px, nav anchors vs `--nav-h`, next-project cycling, the skip link, the press driver (including reduced motion), JSON-LD, robots, sitemap, preview images, and Google Analytics staying silent off the live domain. Routes are read from `out/sitemap.xml`, so new projects are tested automatically.
 - **Lighthouse** (run manually against `npm run preview`): 95–100 in every category. The home page's accessibility score is capped at 95 because Lighthouse flags the decorative yellow headline plate (aria-hidden, 1.6:1). It can't be excluded, and it isn't a real failure.
 
 ## Commands
@@ -47,7 +47,7 @@ npm run format       # prettier --write (format:check verifies)
 ```
 src/
   app/
-    layout.tsx              # <html>, font, skip link, Nav, Footer, PrintPlates + PressDriver, metadata defaults
+    layout.tsx              # <html>, font, skip link, Nav, Footer, PrintPlates + PressDriver, Analytics, metadata defaults
     page.tsx                # Home: hero, at-a-glance, About, Work, Contact; Person JSON-LD
     work/[slug]/page.tsx    # Case study (generateStaticParams, dynamicParams = false)
     work/[slug]/og.png/route.tsx  # per-project social card (route handler → out/work/<slug>/og.png)
@@ -58,7 +58,8 @@ src/
   components/               # Nav, ColorBar, Footer, PlateHeadline, Illustration, SectionLabel,
                             # LeaderRow, HalftoneImage, ProjectImage, ProjectIndex, ProjectGrid,
                             # PrintPlates (SVG filter defs), PressDriver (client),
-                            # PortraitSwap (client; About portrait → code portrait, once per load)
+                            # PortraitSwap (client; About portrait → code portrait, once per load),
+                            # Analytics (GA4 gtag.js via next/script)
   content/
     site.ts                 # site identity, settings flags, nav links, hero/glance/about/contact copy
     projects/<slug>.md      # one Markdown file per project (frontmatter + ## story sections)
@@ -115,7 +116,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 
 - Projects live in `src/content/projects/<slug>.md`, one file per project; the filename is the slug. YAML frontmatter holds `order` (display order), `title, type, year, summary, role, client, duration, team, tools[]`, plus optional `live`, `repo`, `thumb{src,alt}`, `image{src,alt}` (the main project image; formerly `hero`), and `shots[{src?, alt, caption}]`. The body is the story: each `## Heading` starts a section, and its Markdown (paragraphs, lists, emphasis, links) is rendered to HTML at build time with `marked`. External links get the new-tab treatment automatically. `lib/projects.ts` validates every file and fails the build with the file and field name when something is missing. It is build-time only (`node:fs`), so never import it from a client component. In `next dev`, edits to a .md file show on a browser refresh. The live-site and source buttons only render when `live` or `repo` is set. Derived fields (`num`, `href`, `topTools`, the year range) are computed in `lib/projects.ts`, not stored. Adding a project automatically adds its page, sitemap entry, social card and test coverage.
 - The owner supplies the real content: projects, screenshots, portrait, bio, and CV. Until it arrives, use clearly marked placeholders (`TODO:` strings, empty image slots with a neutral fill). Do not reuse the mockup's invented projects (Northline, Fieldnotes, and the others) and do not invent new copy or client names.
-- The hero, "at a glance", About and Contact copy in `src/content/site.ts` came from the mockup and is marked `TODO: confirm` until the owner approves or replaces it. Missing images render as a labelled placeholder panel (`HalftoneImage` with no `src`).
+- The hero, "at a glance", About and Contact copy in `src/content/site.ts` came from the mockup and is marked `TODO: confirm` until the owner approves or replaces it. Confirmed so far: the location ("Based in Denver, Colorado"; the mockup's Lisbon was invented). Missing images render as a labelled placeholder panel (`HalftoneImage` with no `src`).
 - Contact is a `mailto:` link only. A contact form (from the revised mockup, `design/Fritz Padilla Portfolio-with-contact.html`) with a Lambda, DynamoDB and SES backend was built and then parked on the branch `contact-form`; see `PLAN.md` Phase 9.
 - `site.email` (hello@fritzpadilla.com, from the mockup) is used by the nav CTA, the Contact section and the JSON-LD, and is awaiting confirmation. Mail to it is forwarded to the owner's inbox by a forwarding service (runbook step 8). `site.profiles` stays empty until the real GitHub and LinkedIn URLs are known.
 
@@ -125,6 +126,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - `sitemap.ts` and `robots.ts` need `dynamic = "force-static"` for the export.
 - Social cards (`og.png/route.tsx` for the home page, `work/[slug]/og.png/route.tsx` for each project) and the icons (`icons/fp-64.png`, `icons/fp-180.png`) are static route handlers that render at build time via `lib/og.tsx`. It reads colors from `tokens.css`, because Satori can't use CSS variables, and uses the TTFs in `assets/fonts/` (SIL OFL; the license is alongside).
 - **Every exported image must end in `.png`.** Don't use Next's `opengraph-image`/`icon`/`apple-icon` file conventions: they export without a file extension, and Amplify then adds a trailing slash and serves no image type. Pages link the images through metadata: `openGraphBase` in `lib/metadata.ts` carries the home card (case studies override `images` with `ogImage()`), and the layout's `icons` links the favicons.
+- **Google Analytics 4** (`components/Analytics.tsx`, measurement ID `site.gaId`): the standard gtag snippet as an inline `next/script` (`afterInteractive`) in the layout. It fetches gtag.js only when `location.hostname` is the live domain, so `next dev`, `npm run preview` and e2e send nothing (`e2e/seo.spec.ts` checks this). Page views on client-side navigation come from GA4's enhanced measurement ("page changes based on browser history events", on by default). The owner is US-based, so there is no consent banner.
 - The home page has JSON-LD `Person` data. `site.profiles` feeds `sameAs`; keep it empty until the real URLs are known.
 
 ## Deployment (AWS Amplify)
@@ -144,7 +146,7 @@ The mockup uses hash routing (`#/`, `#/about`, `#/work/<slug>`). The real site u
 - Before calling a feature done, run `npm run build` and check it in `npm run preview`. Dev mode hides static-export errors.
 - Compare new UI against `design/Fritz-Padilla-Portfolio.html` at 375px, 768px, 1280px, and 1600px widths.
 - Keep components small and presentational. Content stays out of JSX and lives in `src/content/`.
-- Do not add runtime dependencies without a reason. The site should stay close to zero client JavaScript apart from the press-lean effect.
+- Do not add runtime dependencies without a reason. The site should stay close to zero client JavaScript apart from the press-lean effect and Google Analytics.
 - Commit messages: imperative mood, focused on one concern.
 - **Workflow with the owner:** work phase by phase (see `PLAN.md`, and keep its status current). At the end of each phase, verify it yourself (build, screenshots against the mockup, e2e, axe), then stop and ask the owner to check it. Commit only after the owner approves. Ask before changing anything that departs from the mockup's look.
 - Keep `CLAUDE.md` and `PLAN.md` current in the same change as the work. `AGENTS.md` is generated and maintained by Next.js (`next dev` rewrites it); don't edit it.

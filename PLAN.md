@@ -101,6 +101,11 @@ Amplify builds and deploys every push to `main`, so there's no deploy workflow. 
 4. ~~Delete the temporary `/specimen/` page.~~ Done.
 5. Final review against the mockup, e2e and Lighthouse runs, then connect the domain (runbook step 5). Done: fritzpadilla.com is live.
 
+### After launch
+
+- 2026-10-11: Google Analytics 4 (`G-44XPSN74LN`) added through `components/Analytics.tsx`. It loads only on fritzpadilla.com. No consent banner, since the owner is US-based.
+- 2026-10-11: "At a glance" location corrected from the mockup's "Based in Lisbon" to "Based in Denver, Colorado". The strip's other facts are still `TODO: confirm`.
+
 ## Phase 9 — Contact form (parked)
 
 A form from the revised mockup (`design/Fritz Padilla Portfolio-with-contact.html`) was built, with a Lambda behind CloudFront that saved each message to DynamoDB and emailed it through SES. On 2026-10-06 you chose the simpler option for now: publish `hello@fritzpadilla.com` as a `mailto:` link, with mail forwarded to your inbox (runbook step 8). The full form work, including its runbook step and tests, is committed on the branch `contact-form`.
@@ -114,5 +119,5 @@ Ways to pick it up later:
 ## What I need from you
 
 - Content per project: title, type, year, summary, role, client, duration, team, tools, a three-part story, live and source URLs (either can be omitted), and a thumbnail, a main project image, and up to 4 screenshots with captions.
-- Portrait, bio paragraphs, skills list, location, availability date, CV PDF, and GitHub and LinkedIn URLs.
+- Portrait, bio paragraphs, skills list, location (done: Denver, Colorado), availability date, CV PDF, and GitHub and LinkedIn URLs.
 - Confirmation of the contact email, hello@fritzpadilla.com, and the inbox it should forward to (runbook step 8).
