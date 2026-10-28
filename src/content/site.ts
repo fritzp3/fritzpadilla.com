@@ -6,7 +6,7 @@ export const site = {
   name: "Fritz Padilla",
   url: "https://fritzpadilla.com",
   email: "hello@fritzpadilla.com",
-  colophon: "Hand-built, set in Source Serif",
+  colophon: "Promptly built using Next.js and Claude Code.",
   description:
     "Fritz Padilla, digital impresario: producing digital experiences and leading the teams, architecture and story behind them.",
   jobTitle: "Technical Leader and Software Engineer",
